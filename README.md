@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="data/resources/resyndicated_logo_white.png">
-    <source media="(prefers-color-scheme: light)" srcset="data/resources/resyndicated_logo_black.png">
-    <img alt="ReSyndicated Logo" src="data/resources/resyndicated_logo_black.png" width="480">
+    <source media="(prefers-color-scheme: dark)" srcset="data/resources/resyndicated_logo_black.png">
+    <source media="(prefers-color-scheme: light)" srcset="data/resources/resyndicated_logo_white.png">
+    <img alt="ReSyndicated Logo" src="data/resources/resyndicated_logo_white.png" width="480">
   </picture>
 </p>
 
