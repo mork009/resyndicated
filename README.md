@@ -16,15 +16,15 @@ At this time, ReSyndicated is only supported on Windows and requires the origina
 
 ReSyndicated is forked off the [FreeSynd](https://freesynd.sourceforge.io/) open source project with heavy non-backwards compatible modifications and new capabilities.
 
-## Why not just download FreeSynd?
+## Why not just play FreeSynd?
 
-FreeSynd is great and you should 100% support it. This project started as a fork from FreeSynd v0.9 and owes a lot to the authors of FreeSynd. That said, FreeSynd has different objectives and is moving at a different pace than ReSyndicated. FreeSynd is largely a rendering engine but is missing significant parts of the in-game gameplay mechanics, particularly around AI behaviors. ReSyndicated was goaled on and is very close to 100% replicating original gameplay.
+FreeSynd is great and you should 100% support it. This project started as a fork from FreeSynd v0.9 and owes a lot to the authors of FreeSynd. That said, FreeSynd has different objectives and is moving at a slower pace than ReSyndicated. FreeSynd is largely a rendering engine but is missing significant parts of the in-game gameplay mechanics, particularly around AI behaviors. ReSyndicated was goaled on achieving 100% replicating original gameplay and full editing/creation, and has added 100+ commits while more than doubling the size of the codebase.
 
 Main capabilities & features added in ReSyndicated:
 
-- Full support for all versions of the original Syndicate, including the American Revolt expansion, and Syndicate Plus (a later release that bundled original Syndicate with American Revolt). FreeSynd expects a specific version of the original Syndicate and won't start with a CRC match on specific data files.
+- Full support for all versions of the original Syndicate, including the American Revolt expansion, and Syndicate Plus (a later release that bundled original Syndicate with American Revolt). FreeSynd expects a specific version of the original Syndicate and won't start without a CRC match on specific data files.
 
-- A full editor with ability to create new maps/missions, edit existing ones, including setting mission objectives and properties, and all aspects of NPC behaviors. FreeSynd bundles an editor but it is really a basic tool for viewing sprites, animations, and maps.
+- A full editor with ability to create new maps/missions, edit existing ones, including setting mission objectives and properties, and all aspects of NPC behaviors. FreeSynd bundles an editor but it isn't an actual editor and only allows basic viewing of sprites, animations, and maps.
 
 - A huge amount of AI logic implemented for NPCs, including routing for individual NPCs, vehicles, and enemy faction AI tactics, replicating complex NPC behaviors in the original game. Without these, missions are fundamentally broken.
 
@@ -40,13 +40,13 @@ Main capabilities & features added in ReSyndicated:
 
 - Support for all vehicle types and NPC interactions, including full train running cycles with NPC onboarding and offboarding.
 
-- A number of environment fixes, like corrected color palettes for each country.
+- A number of environment fixes, like correcting color palettes for each country.
 
 - Upgraded SDL2 -> SDL3, modernizing the graphics engine.
 
-- Simpler set up, e.g. no need to edit .ini files. Just run the game/editor, select the original game data files path, and you're set.
+- Simpler setup, e.g. no need to edit .ini files. Just run the game/editor, select the original game data files path, and you're off.
 
-- Ability to resize windows, change zoom scale, enable cheats, and turn on stats and path overlays.
+- New features not available elsewhere, like resizing windows, changing map zoom scale, enabling cheats at any time, and turning on object stats and path overlays.
 
 ## Why not just play the original with DOSBox (or the GOG version)?
 
@@ -54,7 +54,7 @@ Playing with DOSBox is the most authentic way to experience the original game, w
 
 ## Where's the git history?
 
-While this project was forked off FreeSynd v0.9, all the work was done offline until ReSyndicated reached a stable release (v1.0.0). During most of that time, the original Syndicate game assets were checked into git along with other private or copyrighted data. These were removed when the author decided to publish the project publicly but, of course, git history retains those files and makes them recoverable unless extra measures are taken to remove them from the history. Cleaning up git history for over 100 commits, some touching hundreds of files and tens of thousands of lines of code changes, would've added a lot of work with little benefit. So instead this project is being published with an initial commit that stacks all the changes to reach v1.0.0, and all future commits/releases will published to the Github repo.
+While this project was forked off FreeSynd v0.9, all the work was done offline until ReSyndicated reached a stable release (v1.0.0). During most of that time, the original Syndicate game assets were checked into git along with other private or copyrighted data. These were removed when the author decided to publish the project publicly but, of course, git history retains those files and makes them recoverable unless extra measures are taken to remove them from the history. Cleaning up git history for 100+ commits, some touching hundreds of files and tens of thousands of lines of code changes, would've added a lot of work with little benefit. So instead this project is being published with an initial commit that stacks all the changes that got the project to v1.0.0, and all future commits/releases will be published to the Github repo.
 
 ---
 
