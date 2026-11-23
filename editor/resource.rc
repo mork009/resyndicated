@@ -1,0 +1,166 @@
+/*
+ *  ReSyndicated - a modernized game engine and full map/mission editor for the
+ *  classic Bullfrog game, Syndicate. ReSyndicated is forked off the open source
+ *  project, FreeSynd.
+ *
+ *   Copyright (C) 2026  mork009 <mork009resynd@gmail.com>
+ *
+ *   This program is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as 
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>. 
+ * 
+ */
+
+#include "resource.h"
+#include <windows.h>
+
+IDI_APP_ICON ICON "resources/logo.ico"
+
+IDB_TOOLBAR_ICONS    BITMAP "resources/toolbar_icons_24.bmp"
+IDB_TOOLBAR_ICONS_2X BITMAP "resources/toolbar_icons_48.bmp"
+IDB_TAB_ICONS        BITMAP "resources/tab_icons_16.bmp"
+IDB_TAB_ICONS_2X     BITMAP "resources/tab_icons_32.bmp"
+IDR_ICONS_MASTER     RCDATA "resources/icons_master_48.dat"
+
+IDR_MAIN_MENU MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Mission\tCtrl+N",           IDM_FILE_NEW
+        MENUITEM "&Open Mission...\tCtrl+O",        IDM_FILE_OPEN
+        MENUITEM "&Close Mission\tCtrl+W",          IDM_FILE_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "&Save Mission\tCtrl+S",           IDM_FILE_SAVE
+        MENUITEM "Save &As...",                     IDM_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "&Settings...\tCtrl+,",            IDM_FILE_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",                   IDM_FILE_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",                   IDM_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",                   IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete Selected Tile/Entity\tDel",    IDM_EDIT_DELETE
+        MENUITEM "Deselect All\tEsc",               IDM_EDIT_DESELECT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Show Stats",                     IDM_VIEW_SHOW_STATS
+        MENUITEM "&Slice View (Z-Isolation)\tZ",    IDM_VIEW_SLICE
+        MENUITEM SEPARATOR
+        POPUP "F&ilters"
+        BEGIN
+            MENUITEM "&Select All",                 IDM_VIEW_FILTER_SELECT_ALL
+            MENUITEM "&Clear All",                  IDM_VIEW_FILTER_CLEAR_ALL
+            MENUITEM SEPARATOR
+            MENUITEM "&Buildings / Structures",     IDM_VIEW_FILTER_BUILDINGS
+            MENUITEM "&Vehicles",                   IDM_VIEW_FILTER_VEHICLES
+            MENUITEM "&Civilians",                  IDM_VIEW_FILTER_CIVILIANS
+            MENUITEM "&Police",                     IDM_VIEW_FILTER_POLICE
+            MENUITEM "&Guards",                     IDM_VIEW_FILTER_GUARDS
+            MENUITEM "Cr&iminals",                  IDM_VIEW_FILTER_CRIMINALS
+            MENUITEM "&Agents",                     IDM_VIEW_FILTER_AGENTS
+            MENUITEM "&Weapon Drops",               IDM_VIEW_FILTER_WEAPONS
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Zoom &In\t+",                     IDM_VIEW_ZOOM_IN
+        MENUITEM "Zoom &Out\t-",                    IDM_VIEW_ZOOM_OUT
+        MENUITEM "Zoom &100%\t1",                   IDM_VIEW_ZOOM_100
+        MENUITEM "Zoom 1&50%\t2",                   IDM_VIEW_ZOOM_150
+        MENUITEM "Zoom &200%\t3",                   IDM_VIEW_ZOOM_200
+        MENUITEM SEPARATOR
+        MENUITEM "Center on &Player's Agents\tHome", IDM_VIEW_CENTER_SQUAD
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&Pencil\tP",                      IDM_TOOLS_PENCIL
+        MENUITEM "&Box Fill\tB",                    IDM_TOOLS_BOXFILL
+        MENUITEM "&Select / Move Entity\tV",        IDM_TOOLS_SELECT
+        MENUITEM "&Search\tS",                      IDM_TOOLS_SEARCH
+    END
+    POPUP "&Layer"
+    BEGIN
+        MENUITEM "Layer &Up\tPgUp",                 IDM_LAYER_UP
+        MENUITEM "Layer &Down\tPgDn",               IDM_LAYER_DOWN
+        MENUITEM "&Auto Layer Switching\tAlt+L",    IDM_LAYER_AUTO
+        MENUITEM SEPARATOR
+        MENUITEM "Layer 12",                        IDM_LAYER_12
+        MENUITEM "Layer 11",                        IDM_LAYER_11
+        MENUITEM "Layer 10",                        IDM_LAYER_10
+        MENUITEM "Layer 9",                         IDM_LAYER_9
+        MENUITEM "Layer 8",                         IDM_LAYER_8
+        MENUITEM "Layer 7",                         IDM_LAYER_7
+        MENUITEM "Layer 6",                         IDM_LAYER_6
+        MENUITEM "Layer 5",                         IDM_LAYER_5
+        MENUITEM "Layer 4",                         IDM_LAYER_4
+        MENUITEM "Layer 3",                         IDM_LAYER_3
+        MENUITEM "Layer 2",                         IDM_LAYER_2
+        MENUITEM "Layer 1",                         IDM_LAYER_1
+        MENUITEM "Layer 0",                         IDM_LAYER_0
+    END
+    POPUP "&Mission"
+    BEGIN
+        MENUITEM "&Playtest Mission\tF5",        IDM_MISSION_PLAYTEST
+        MENUITEM "Playtest &Configuration...",      IDM_MISSION_LOADOUT
+        MENUITEM SEPARATOR
+        MENUITEM "Mission &Properties...",          IDM_MISSION_PROPERTIES
+        MENUITEM "AI &Tactics...",              IDM_MISSION_AI_TACTICS
+        MENUITEM SEPARATOR
+        MENUITEM "&Validate Entities...",           IDM_MISSION_VALIDATE
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&How-To",                         IDM_HELP_TOOLS
+        MENUITEM "Keyboard && &Mouse Shortcuts\tF1", IDM_HELP_SHORTCUTS
+        MENUITEM SEPARATOR
+        MENUITEM "&About",   IDM_HELP_ABOUT
+    END
+END
+
+IDR_ACCELERATOR ACCELERATORS
+BEGIN
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL
+    "W",            IDM_FILE_CLOSE,         VIRTKEY, CONTROL
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL
+    VK_OEM_COMMA,   IDM_FILE_SETTINGS,      VIRTKEY, CONTROL
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL
+    "Y",            IDM_EDIT_REDO,          VIRTKEY, CONTROL
+    "Z",            IDM_VIEW_SLICE,         VIRTKEY
+    "P",            IDM_TOOLS_PENCIL,       VIRTKEY
+    "B",            IDM_TOOLS_BOXFILL,      VIRTKEY
+    "V",            IDM_TOOLS_SELECT,       VIRTKEY
+    "S",            IDM_TOOLS_SEARCH,       VIRTKEY
+    VK_DELETE,      IDM_EDIT_DELETE,        VIRTKEY
+    VK_ESCAPE,      IDM_EDIT_DESELECT,      VIRTKEY
+    VK_HOME,        IDM_VIEW_CENTER_SQUAD,  VIRTKEY
+    VK_OEM_PLUS,    IDM_VIEW_ZOOM_IN,       VIRTKEY
+    VK_ADD,         IDM_VIEW_ZOOM_IN,       VIRTKEY
+    VK_OEM_MINUS,   IDM_VIEW_ZOOM_OUT,      VIRTKEY
+    VK_SUBTRACT,    IDM_VIEW_ZOOM_OUT,      VIRTKEY
+    "1",            IDM_VIEW_ZOOM_100,      VIRTKEY
+    "2",            IDM_VIEW_ZOOM_150,      VIRTKEY
+    "3",            IDM_VIEW_ZOOM_200,      VIRTKEY
+    VK_PRIOR,       IDM_LAYER_UP,           VIRTKEY
+    VK_PRIOR,       IDM_LAYER_UP,           VIRTKEY, SHIFT
+    VK_NEXT,        IDM_LAYER_DOWN,         VIRTKEY
+    VK_NEXT,        IDM_LAYER_DOWN,         VIRTKEY, SHIFT
+    VK_OEM_4,       IDM_LAYER_DOWN,         VIRTKEY
+    VK_OEM_4,       IDM_LAYER_DOWN,         VIRTKEY, SHIFT
+    VK_OEM_6,       IDM_LAYER_UP,           VIRTKEY
+    VK_OEM_6,       IDM_LAYER_UP,           VIRTKEY, SHIFT
+    "L",            IDM_LAYER_AUTO,         VIRTKEY, ALT
+    VK_F1,          IDM_HELP_SHORTCUTS,     VIRTKEY
+    VK_F5,          IDM_MISSION_PLAYTEST,   VIRTKEY
+END

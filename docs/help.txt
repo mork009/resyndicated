@@ -1,0 +1,19 @@
+Usage: resynd_game [OPTIONS]
+
+Options:
+  -h,--help                    Display command line options and exit.
+  -u,--conf <path>             Specify directory path containing resynd.conf configuration file.
+  -d,--data <path>             Specify directory path containing original Syndicate data files.
+  --settings                   Open settings dialog to configure original data path.
+  -n,--nosound                 Disable all sound and music playback.
+  -f,--fullscreen              Start the game in fullscreen mode.
+  -m,--mission <id>            Jump directly to specified mission briefing (1–50).
+  -c,--cheat <codes>           Enable colon-separated list of active cheat codes at launch.
+  -w,--window-scale <scale>    Set initial window scale factor (1–4) or custom dimensions (e.g., 1280x960).
+  -z,--map-zoom <factor>       Set initial map zoom multiplier (e.g., 1.0, 1.5, 2.0).
+  -l,--log <flag>              Apply colon-separated logging flags (Debug builds).
+  -L,--loadout <path>          Specify squad weapons and cybernetic mods descriptor file (see sample_loadout.conf).
+  --show-coords                Display tile coordinates in game viewport.
+  --show-paths                 Display agent movement path vectors.
+  --show-stats                 Display ped and target health stats overlay.
+  -D,--mission-dir <path>      Specify custom directory containing mission triad files (gameXX.dat, mapXX.dat, missXX.dat).

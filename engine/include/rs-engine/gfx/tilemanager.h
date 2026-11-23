@@ -1,0 +1,112 @@
+/*
+ *  ReSyndicated - a modernized game engine and full map/mission editor for the
+ *  classic Bullfrog game, Syndicate. ReSyndicated is forked off the open source
+ *  project, FreeSynd.
+ *
+ *   Copyright (C) 2005  Stuart Binge  <skbinge@gmail.com>
+ *   Copyright (C) 2005  Joost Peters  <joostp@users.sourceforge.net>
+ *   Copyright (C) 2006  Trent Waddington <qg@biodome.org>
+ *   Copyright (C) 2024-2026  Benoit Blancard <benblan@users.sourceforge.net>
+ *   Copyright (C) 2026  mork009 <mork009resynd@gmail.com>
+ *
+ *   This program is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as 
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>. 
+ * 
+ */
+
+#ifndef TILEMANAGER_H
+#define TILEMANAGER_H
+
+#include <memory>
+
+#include "rs-utils/common.h"
+#include "rs-engine/gfx/tile.h"
+#include "rs-engine/gfx/rstexture.h"
+
+namespace rs_eng {
+
+/*!
+ * Tile manager loads and holds all the game tiles.
+ * Tiles are loaded from the original file and the color palette
+ * to use depends on the mission that is played.
+ * So calling TileManager::loadTiles() creates a RSTexture with
+ * all tiles. But before loading a mission, we must call
+ * setPaletteForMission() which will create the real texture with
+ * the good palette.
+ */
+class TileManager {
+public:
+    /*! The total number of tiles.*/
+    static const int kNumOfTiles;
+    //! The number of sub-tiles horizontally for a tile
+    static const int kSubTilePerWidth;
+    //! The number of sub-tiles vertically for a tile
+    static const int kSubTilePerHeight;
+    //! The total number of sub-tiles for a tile
+    static const int kSubTilePerTile;
+    //! The number of tiles on a row in the tile texture
+    static const int kNumOfTilesPerRow;
+    //! The number of tiles on a column in the tile texture
+    static const int kNumOfTilesPerCol;
+    /*!
+     * The size in bytes of the indexes of subtiles for tile in the header file.
+     * There are 6 subtiles of 4 bytes for each tile.
+     */
+    static const int kTileIndexSize;
+    //! The length in bytes of the header : there are 256 tiles.
+    static const int kTileHeaderLength;
+    //! SUBTILE_WIDTH / PIXELS_PER_BLOCK
+    static const int kBlocksPerSubTileRow;
+    //! (COLOR_BYTES_PER_BLOCK + ALPHA_BYTES_PER_BLOCK) * BLOCKS_PER_SUBTILE_ROW
+    static const int kSubTileRowLength;
+    //! The index of the tile that is used for empty space
+    static const int kIndexTransparentTile;
+
+    TileManager();
+    ~TileManager();
+    //! Loads tiles from the file
+    bool loadTiles();
+    //! Load the palette with the given id
+    bool setPalette(int paletteId);
+    //! Return the palette used by this tile manager
+    rs_eng::Palette & getPalette() { return palette_; }
+
+    //! Returns tile with the given index
+    Tile * getTile(uint8_t index);
+    //! Draws the tile to the screen
+    bool drawTile(const Tile *tile, int x, int y);
+
+protected:
+    //! Load a given tile
+    void loadTile(int id, const uint8_t * tileData, uint8_t *typesData, uint8_t *tilesetBuffer);
+    //! Load a given sub-tile
+    void loadSubTile(const uint8_t * data, int offset, int index, int stride, uint8_t * pixels);
+    //! Copy the tile from the tile array to the tilesetBuffer
+    void copyTilePixelsToBuffer(int id, const uint8_t *tilePixels, uint8_t *tilesetBuffer);
+    //! Returns the good enum for the given data
+    Tile::EType toTileType(uint8_t data);
+
+protected:
+    //! Index in the palette for the transparent color
+    static const int kTileColorKeyIndex;
+    //! All the tiles in the game
+    Tile **tiles_;
+    //! A texture that store the tileset
+    std::unique_ptr<RSTexture> tilesTexture_;
+    //! The palette used for the texture of tiles
+    rs_eng::Palette palette_;
+};
+
+}
+
+#endif

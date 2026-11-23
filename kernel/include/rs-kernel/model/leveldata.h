@@ -1,0 +1,495 @@
+/*
+ *  ReSyndicated - a modernized game engine and full map/mission editor for the
+ *  classic Bullfrog game, Syndicate. ReSyndicated is forked off the open source
+ *  project, FreeSynd.
+ *
+ *   Copyright (C) 2005  Stuart Binge  <skbinge@gmail.com>
+ *   Copyright (C) 2005  Joost Peters  <joostp@users.sourceforge.net>
+ *   Copyright (C) 2006  Trent Waddington <qg@biodome.org>
+ *   Copyright (C) 2010, 2025-2026  Benoit Blancard <benblan@users.sourceforge.net>
+ *   Copyright (C) 2010  Bohdan Stelmakh <chamel@users.sourceforge.net>
+ *   Copyright (C) 2026  mork009 <mork009resynd@gmail.com>
+ *
+ *   This program is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as 
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>. 
+ * 
+ */
+
+#ifndef MODEL_LEVELDATA_H_
+#define MODEL_LEVELDATA_H_
+
+#include "rs-utils/common.h"
+
+/*!
+ * This namespace holds structures that represent a game file (GAMEXX.DAT).
+ */
+namespace LevelData {
+    /*!
+     * This is a header. Unknown use.
+     * total: 8 bytes
+     */
+    struct Unkn01 {
+        uint8_t unkn10[6];
+    };
+
+    /*!
+     * The objs field is an array that represent the tiles of the map
+     * (every map are 128x128 tiles). The values plus 32774 give an offset
+     * in this file that is the entity placed on this tile.
+     * The resulting offset can be 98309 max and only peds, vehicle, objects
+     * and weapons can be indexed.
+     * Was not able to verify correctness
+     * total: 32768 bytes
+     */
+    struct Map {//
+        //! 128*128 offsets size 2 bytes(LE)
+        uint8_t objs[32768];
+    };
+
+    /*!
+     * This structure contains all people in the game, including agents
+     * This struct size is 92.
+     * most 2 byte variable have little-endianess byte order(LE)
+     */
+    struct People {
+        // (LE data)'offset + 32774' gives the offset in this
+        // file of the next object
+        uint8_t offset_next[2];
+        // (LE data)'offset + 32774' gives the offset in this
+        // file of the previous object (sometimes weapon, or
+        // the next target for example ???)
+        uint8_t offset_prev[2];
+        // [0] - offset, [1] - tile
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        // to convert to our system use as uint16(LE)
+        // tile = (uint16)/128, offz =(uint16)%128 or offz = mapposz[0] & 0x1F
+        uint8_t mapposz[2];
+        /*!
+         * This field gives information on the ped location. Values are:
+         * 0x04 - ped on map
+         * 0x05 - ped not on map(driving)
+         * 0x0D - they are not visible/present on original map(on water located), purpose?
+         * 0x0C - located level above possible walking surface, purpose?
+         * 0x0D and 0x0C are excluded from being loaded
+         */
+        uint8_t location;
+        /*!
+         * This field gives information on the ped's state. Values are:
+         * 0x0 - standing
+         * 0x10 - walking
+         * 0x11 - dead
+         */
+        uint8_t state;
+        uint8_t unkn3[2];         // nothing changes when this changes
+        uint8_t index_base_anim[2];  //index in (HSTA-0.ANI)
+        uint8_t index_current_frame[2];   //index in (HFRA-0.ANI)
+        uint8_t index_current_anim[2]; // index in (HSTA-0.ANI)
+        uint8_t health[2];
+        uint8_t offset_last_enemy[2];
+        //0x01 ped; 0x02 vehicle; 0x04 weapon;
+        //0x05 object; allow to display a target, a pickup, and for minimap
+        uint8_t type;
+        uint8_t status; // this can be sub type(?)
+        //from 0xF0 to 0x10 : south = 0
+        //from 0x10 to 0x30 : south-east = 1
+        //from 0x30 to 0x50 : east = 2
+        //from 0x50 to 0x70 : east-north = 3
+        //from 0x70 to 0x90 : north = 4
+        //from 0x90 to 0xB0 : north-west = 5
+        //from 0xB0 to 0xD0 : west = 6
+        //from 0xD0 to 0xF0 : west-south = 7
+        // surface is mapped not to 360 degrees/surface, but 256 degrees/surface
+        uint8_t orientation;
+        uint8_t unkn4;
+        // when 01 pedestrian, 02 agent, 04 police, 08 guard, 16 criminal
+        uint8_t type_ped;
+        uint8_t unkn5[3];
+        uint8_t offset_of_persuader[2];
+        uint8_t unkn6[2];
+        uint8_t offset_of_vehicle[2];
+        // currently executed scenario
+        uint8_t offset_scenario_curr[2];
+        // starting point for current scenario
+        uint8_t offset_scenario_start[2];
+        uint8_t unkn7[2];
+        uint8_t offset_of_vehicle_2[2]; // ??
+        uint8_t goto_mapposx[2];
+        uint8_t goto_mapposy[2];
+        uint8_t goto_mapposz[2];
+        uint8_t unkn8[6];
+        uint8_t offset_equipment[2];
+        //bitmask, 0b - gender, 1-2b - leg, 3-4b - arm, 5-6b - chest
+        // 7-8b - heart, 9-10b - eye, 11-12b - brain, 13-15b - unknown
+        uint8_t mods_info[2];
+        uint8_t unkn9[6];
+        uint8_t offset_cur_weapon[2];
+        // IPA levels: white bar level,set level,exhaused level and forced level
+        uint8_t unkn10;
+        uint8_t adrena_amount;
+        uint8_t adrena_dependency;
+        uint8_t adrena_effect;
+        uint8_t unkn11;
+        uint8_t inteli_amount;
+        uint8_t inteli_dependency;
+        uint8_t inteli_effect;
+        uint8_t unkn12;
+        uint8_t percep_amount;
+        uint8_t percep_dependency;
+        uint8_t percep_effect;
+        uint8_t unkn13;
+        uint8_t unkn14[9];
+    };
+
+    /*!
+     * This structure contains all cars in the game, including destroyed
+     * This struct size is 42.
+     */
+    struct Cars {
+        uint8_t offset_next[2];
+        uint8_t offset_prev[2];
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        uint8_t mapposz[2];
+        // 0x04 on map(visible)
+        // 0x05 not on map(hidden)
+        uint8_t desc;
+        uint8_t unkn1;
+        uint8_t unkn2;
+        uint8_t unkn3;
+        uint8_t index_base_anim[2];
+        uint8_t index_current_frame[2];
+        uint8_t index_current_anim[2];
+        uint8_t health[2];
+        uint8_t offset_last_enemy[2];
+        uint8_t type; // 0x02
+        uint8_t sub_type;
+        uint8_t orientation;
+        uint8_t unkn4;
+        uint8_t offset_of_driver[2]; //driver
+        uint8_t unkn5[10];
+        uint8_t speed;
+        uint8_t unkn6;
+    };
+
+    /*!
+     *
+     * total: 30 bytes
+     */
+    struct Statics {
+        uint8_t offset_next[2];
+        uint8_t offset_prev[2];
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        uint8_t mapposz[2];
+        // 0x04 - on map;
+        // 0x06 - on map, but why not 0x04?
+        // 0x07 - on map, objects visibility is dependent on
+        // orientation 0x40, 0x80 are drawn
+        uint8_t desc;
+        uint8_t unkn11;
+        uint8_t unkn12;
+        uint8_t unkn13;
+        uint8_t index_base_anim[2];
+        uint8_t index_current_frame[2];
+        uint8_t index_current_anim[2];
+        uint8_t unkn20[4];
+        uint8_t type;
+        // more info mapobject.cpp
+        uint8_t sub_type;
+        uint8_t orientation;
+        uint8_t unkn27[3];
+    };
+
+    /*!
+     *
+     * total: 36 bytes
+     */
+    struct Weapons {
+        uint8_t offset_next[2];
+        uint8_t offset_prev[2];
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        uint8_t mapposz[2];
+        // 0x04 on map
+        // 0x05 not on map(in inventory)
+        uint8_t desc;
+        uint8_t unkn2;
+        uint8_t unkn3;
+        uint8_t unkn4;
+        uint8_t index_base_anim[2];
+        uint8_t index_current_frame[2];
+        uint8_t index_current_anim[2];
+        uint8_t unkn5[4];
+        // look peds for more info
+        uint8_t type; // 0x04
+        /* 0x01 persuadertron; 0x02 pistol; 0x03 gauss gun; 0x04 shotgun;
+         * 0x05 uzi; 0x06 minigun; 0x07 laser; 0x08 flamer; 0x09 long range;
+         * 0x0A scanner; 0x0B medikit; 0x0C time bomb; 0x0D access card;
+         * 0x0E invalid; 0x0F invalid; 0x10 invalid; 0x11 energy shield;
+        */
+        uint8_t sub_type;
+        uint8_t unkn6[2];
+        uint8_t offset_next_inventory[2];
+        uint8_t offset_prev_inventory[2];
+        uint8_t offset_owner[2];
+        uint8_t unkn7[2];
+    };
+
+    /*!
+     * total: 30 bytes
+     */
+    struct Sfx {
+        uint8_t offset_next[2];
+        uint8_t offset_prev[2];
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        uint8_t mapposz[2];
+        uint8_t unkn1[4];
+        uint8_t index_base_anim[2];
+        uint8_t index_current_frame[2];
+        uint8_t index_current_anim[2];
+        uint8_t unkn2[8];
+        uint8_t offset_owner[2];
+    };
+
+    /*!
+     * total: 8 bytes
+     */
+    struct Scenarios {
+        // first scenario should be skipped, type 0x00
+        uint8_t next[2];
+        uint8_t offset_object[2];
+        // tile_x_ = tilex >> 1
+        // off_x_ = (tilex & 0x01) << 7
+        uint8_t tilex;
+        // tile_y_ = tiley >> 1
+        // off_y_ = (tiley & 0x01) << 7
+        uint8_t tiley;
+        // tile_z_ = tilez
+        uint8_t tilez;
+        /*!
+         * Gives the type of scenario. Values are:
+         * 0x00 - unset scenario type, is found at start of array and end;
+         * 0x01 - walking/driving to pos, x,y defined, no object offset;
+         * 0x02 - vehicle to use and goto
+         * 0x03 - ?(south africa)
+         * 0x05 - ?(kenya)
+         * 0x06 - (kenya) - ped offset when in vehicle, and? (TODO)
+         * 0x07 - assasinate target escaped, mission failed
+         * 0x08 - walking to pos, triggers on our agents in range, x,y defined
+         * 0x09 - repeat from start, actually this might be end of script
+         * 0x0A - train stops and waits
+         * 0x0B - protected target reached destination(kenya) (TODO properly)
+         */
+        uint8_t type;
+    };
+
+    /*!
+     * total: 448 bytes
+     */
+    struct Unkn09{
+        uint8_t unkn10[448];
+    };
+
+    /*!
+     * total: 14 bytes
+     */
+    struct MapInfos {
+        uint8_t map[2];
+        uint8_t min_x[2];
+        uint8_t min_y[2];
+        uint8_t max_x[2];
+        uint8_t max_y[2];
+        //status flag is set to 1 if the mission has been successfully completed
+        uint8_t status;
+        uint8_t unkn1[3];
+    };
+
+    /*!
+     * total: 14 bytes
+     */
+    struct Objectives {
+        /* only max 5 objectives are non-zero, we will read 6
+         * 0x00 action for non-agent(?) ;0x01 persuade; 0x02 assassinate;
+         * 0x03 protect; 0x05 equipment aquisition; 0x0a combat sweep (police);
+         * 0x0b combat sweep; 0x0e destroy vehicle; 0x0f use vehicle;
+         * 0x10 evacuate
+         * more info in mission.cpp : loadLevel()
+        */
+        uint8_t type[2];
+        // 'offset + 32774' gives the offset in this file of the first objective
+        uint8_t offset[2];
+        uint8_t mapposx[2];
+        uint8_t mapposy[2];
+        uint8_t mapposz[2];
+        /* If "protect", the next objective are the goals and their type is zero.
+         * The list finish with zero and the offset of the protected item ?
+         * The status flag is set to 1 if the objective has to be completed
+        */
+        uint8_t status;
+        uint8_t unkn1[3];
+    };
+
+    /*!
+     * total: 1952 bytes
+     */
+    struct Unkn11 {
+        uint8_t unkn10[1952];
+    };
+
+    /*!
+     * AI Mission Header (8 bytes) at offset 114082 (data[114058 + 24]).
+     */
+    struct AIMissionHeader {
+        uint8_t num_squads;        //!< Total squads in mission (e.g. 5)
+        uint8_t peds_per_squad;    //!< Agents per squad (usually 8)
+        uint8_t unkn1[5];          //!< Reserved
+        uint8_t max_rush_factions; //!< Max factions rushed by AI header loop at start (syndicat_main 0x12D89)
+    };
+    static_assert(sizeof(AIMissionHeader) == 8, "AIMissionHeader must be 8 bytes");
+
+    /*!
+     * Syndicate AI Tactic Entry (15 bytes).
+     * Part of the 128-entry squad tactical finite state machine at offset 114090 (data[114058 + 24 + 8]).
+     */
+    struct AITactic {
+        uint8_t next_tactic[2]; //!< Index of next tactic in chain (0 = end of chain)
+        uint8_t prev_tactic[2]; //!< Index of parent tactic in chain (0 = root entry active at start)
+        uint8_t state_counter;  //!< Runtime execution state / countdown counter
+        uint8_t faction_id;     //!< Squad faction: 1=Blue, 2=Orange, 3/4=Yellow, 255=wildcard
+        uint8_t sub_filter;     //!< Flags: 0x08 = armed required, 0x10 = completed, 0x40 = disabled/unused
+        uint8_t mode;           //!< Tactic mode (0..10: Seek&Destroy, RivalSweep, ProximityTripwire, etc.)
+        uint8_t sub_mode;       //!< Sub-mode / parameter filter
+        uint8_t param1[2];      //!< Primary parameter: proximity radius in tiles (Mode 7), target faction ID (Mode 2/3), vehicle offset (Mode 8), timer ticks (Mode 10)
+        uint8_t param2[2];      //!< Secondary parameter: Coord X (tx / world units) or secondary param
+        uint8_t param3[2];      //!< Coord Y (ty / world units) or secondary param
+    };
+    static_assert(sizeof(AITactic) == 15, "AITactic must be 15 bytes");
+
+    /*!
+     * AI Tactics Block (1952 bytes total) at offset 114058 in gameXX.dat.
+     * Contains 24 bytes header padding, 8 bytes AI mission header, and 128 entries of 15 bytes.
+     */
+    struct AITacticsBlock {
+        uint8_t pad_header[24];
+        AIMissionHeader header;
+        AITactic entries[128];
+    };
+    static_assert(sizeof(AITacticsBlock) == 1952, "AITacticsBlock must be 1952 bytes");
+
+    /*!
+     * This is the main structure.
+     */
+    struct LevelDataAll {
+        /*      0 */ Unkn01 u01;
+        /*      6 */ Map map;
+        /*  32774 0x0*/ uint8_t offset_ref[2];
+        /*  32776 0x02*/ People people[256];
+        /*  56328 0x5C02*/ Cars cars[64];
+        /*  59016 0x6682*/ Statics statics[400];
+        /*  71016 0x9562*/ Weapons weapons[512];
+        /*  89448 0xDD62*/ Sfx sfx[256];
+        /*  97128 0xFB62*/ LevelData::Scenarios scenarios[2048];
+        /* 113512 */ Unkn09 u09;
+        /* 113960 */ MapInfos mapinfos;
+        /* 113974 */ Objectives objectives[6];
+        /* 114058 */ union {
+            Unkn11 u11;
+            AITacticsBlock tactics;
+        };
+    };
+    static_assert(sizeof(LevelDataAll) == 116010, "LevelDataAll must be 116010 bytes");
+
+    /*! Constant for field People::location : Ped is on the map.*/
+    constexpr int kPeopleLocOnMap = 0x04;
+    /*! Constant for field People::location : Ped is in a vehicle.*/
+    constexpr int kPeopleLocInVehicle = 0x05;
+    /*! Constant for field People::location : located level above possible walking surface, purpose?*/
+    constexpr int kPeopleLocAboveWalkSurf = 0x0C;
+    /*! Constant for field People::location : they are not visible/present on original map(on water located), purpose?*/
+    constexpr int kPeopleLocNotVisible = 0x0D;
+
+    /*! Constant for field People::state : ped is walking.*/
+    constexpr int kPeopleStateWalking = 0x10;
+    /*! Constant for field People::state : ped is dead.*/
+    constexpr int kPeopleStateDead = 0x11;
+
+    /*! Constant for field Scenario::type : Walk or drive to location.*/
+    constexpr int kScenarioTypeGoto = 0x01;
+    /*! Constant for field Scenario::type :  Use vehicle to go somewhere.*/
+    constexpr int kScenarioTypeUseVehicle = 0x02;
+    /*! Constant for field Scenario::type : Dwell or wait duration.*/
+    constexpr int kScenarioTypeWait = 0x05;
+    /*! Constant for field Scenario::type : Unboard / leave vehicle.*/
+    constexpr int kScenarioTypeLeaveVehicle = 0x06;
+    /*! Constant for field Scenario::type :  Target has escape the map.*/
+    constexpr int kScenarioTypeEscape = 0x07;
+    /*! Constant for field Scenario::type : this is a trigger.
+     * Agents will trigger it when they enter the circle defined by the center and a fixed radius.*/
+    constexpr int kScenarioTypeTrigger = 0x08;
+    /*! Constant for field Scenario::type : Reset all scripted action.*/
+    constexpr int kScenarioTypeReset = 0x09;
+    /*! Constant for field Scenario::type : Train station platform dwell (10s).*/
+    constexpr int kScenarioTypeTrainWait = 0x0A;
+
+    /*! Constant for field Objectives::type : action for non-agent ped(?).*/
+    constexpr int kObjectiveTypeNonAgentAction = 0x00;
+    /*! Constant for field Objectives::type : persuade a target.*/
+    constexpr int kObjectiveTypePersuade = 0x01;
+    /*! Constant for field Objectives::type : assassinate a target.*/
+    constexpr int kObjectiveTypeAssassinate = 0x02;
+    /*! Constant for field Objectives::type : protect a target.*/
+    constexpr int kObjectiveTypeProtect = 0x03;
+    /*! Constant for field Objectives::type : acquire a piece of equipment.*/
+    constexpr int kObjectiveTypeEquipmentAcquisition = 0x05;
+    /*! Constant for field Objectives::type : combat sweep against police.*/
+    constexpr int kObjectiveTypeCombatSweepPolice = 0x0A;
+    /*! Constant for field Objectives::type : combat sweep.*/
+    constexpr int kObjectiveTypeCombatSweep = 0x0B;
+    /*! Constant for field Objectives::type : destroy a vehicle.*/
+    constexpr int kObjectiveTypeDestroyVehicle = 0x0E;
+    /*! Constant for field Objectives::type : use a vehicle.*/
+    constexpr int kObjectiveTypeUseVehicle = 0x0F;
+    /*! Constant for field Objectives::type : evacuate agents.*/
+    constexpr int kObjectiveTypeEvacuate = 0x10;
+
+    // AI Tactic Mode Constants
+    constexpr int kAITacticModeNone = 0;
+    constexpr int kAITacticModeSeekDestroy = 1;
+    constexpr int kAITacticModeRivalSweep = 2;
+    constexpr int kAITacticModeObjectiveSweep = 3;
+    constexpr int kAITacticModeStationaryGuard = 4;
+    constexpr int kAITacticModeWeaponAmbush = 5;
+    constexpr int kAITacticModePatrolSearch = 6;
+    constexpr int kAITacticModeProximityAlert = 7;
+    constexpr int kAITacticModeProximityTripwire = 7;
+    constexpr int kAITacticModeBoardVehicle = 8;
+    constexpr int kAITacticModeEvacuate = 9;
+    constexpr int kAITacticModeDelayTimer = 10;
+
+    // AI Tactic Filter & Flag Constants
+    constexpr uint8_t kAITacticFlagArmedRequired = 0x08;
+    constexpr uint8_t kAITacticFlagCompleted = 0x10;
+    constexpr uint8_t kAITacticFlagDisabled = 0x40;
+
+    // Faction Constants
+    constexpr uint8_t kAIFactionPlayer = 0;
+    constexpr uint8_t kAIFactionBlue = 1;
+    constexpr uint8_t kAIFactionOrange = 2;
+    constexpr uint8_t kAIFactionYellow1 = 3;
+    constexpr uint8_t kAIFactionYellow2 = 4;
+    constexpr uint8_t kAIFactionWildcard = 255;
+}
+
+#endif  // MODEL_LEVELDATA_H_

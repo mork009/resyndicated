@@ -1,0 +1,210 @@
+/*
+ *  ReSyndicated - a modernized game engine and full map/mission editor for the
+ *  classic Bullfrog game, Syndicate. ReSyndicated is forked off the open source
+ *  project, FreeSynd.
+ *
+ *   Copyright (C) 2005  Stuart Binge  <skbinge@gmail.com>
+ *   Copyright (C) 2005  Joost Peters  <joostp@users.sourceforge.net>
+ *   Copyright (C) 2006  Trent Waddington <qg@biodome.org>
+ *   Copyright (C) 2010, 2024-2025  Benoit Blancard <benblan@users.sourceforge.net>
+ *   Copyright (C) 2010  Bohdan Stelmakh <chamel@users.sourceforge.net>
+ *   Copyright (C) 2026  mork009 <mork009resynd@gmail.com>
+ *
+ *   This program is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as 
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *  See the GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/>. 
+ * 
+ */
+
+#ifndef GAMEPLAYMENU_H
+#define GAMEPLAYMENU_H
+
+#include "rs-engine/menus/menumanager.h"
+#include "rs-engine/events/event.h"
+#include "agentselectorrenderer.h"
+#include "maprenderer.h"
+#include "minimaprenderer.h"
+#include "squadselection.h"
+
+
+/*!
+ * Gameplay Menu class.
+ */
+class GameplayMenu : public rs_eng::Menu {
+public:
+    GameplayMenu(rs_eng::MenuManager *m);
+    //! Update the menu state
+    bool handleTick(uint32_t elapsed) override;
+    bool handleBeforeShow() override;
+    void handleRender() override;
+    void handleLeave() override;
+
+protected:
+    /**
+     * @name Mouse/Key events handling
+     */
+    ///@{
+    bool handleUnMappedKey(const rs_eng::RS_Key key) override;
+
+    void handleMouseMotion(Point2D point, uint32_t state) override;
+    bool handleMouseDown(Point2D point, int button) override;
+    void handleMouseUp(Point2D point, int button) override;
+    //! Handles the user's click on weapon selector
+    void handleClickOnWeaponSelector(Point2D point, int button);
+    //! sets IPA level for defined agent, selector
+    void setIPAForAgent(size_t slot, IPAStim::IPAType ipa_type, uint8_t percentage);
+    //! Handles the user's click on the map
+    void handleClickOnMap(Point2D point, int button);
+    //! Handles the user's click on the minimap
+    void handleClickOnMinimap(Point2D point);
+    ///@}
+
+    /**
+     * @name In game events handling
+     */
+    ///@{
+    //! Handle when an agent has died
+    void onAgentDiedEvent(rs_knl::AgentDiedEvent *pEvt);
+    //! Handle when a shooting weapon was selected or deselected
+    void onShootingWeaponSelectedEvent(rs_knl::ShootingWeaponSelectedEvent *pEvt);
+    //!
+    void onPoliceWarningEmittedEvent(rs_knl::PoliceWarningEmittedEvent *pEvt);
+    //! When mission ends
+    void onMissionEndedEvent(rs_knl::MissionEndedEvent *pEvt);
+    ///@}
+
+    /**
+     * @name State update
+     */
+    ///@{
+    //! Update the target value for adrenaline etc for an agent
+    void updateIPALevelMeters(uint32_t elapsed);
+
+    void updateMarkersPosition();
+    //! Get the current hint and manage animation
+    void updateMissionHint(uint32_t elapsed);
+    //! Change cursor based on what the mouse is pointing at
+    void updateCursorFromTarget(const Point2D &point);
+    ///@}
+
+    /**
+     * @name Draw screen elements
+     */
+    ///@{
+    //!
+    void drawSelectAllButton();
+    void drawMissionHint();
+    void drawWeaponSelectors();
+    void drawAirStrikeOverlay(int slotX, int slotY);
+    void drawCloneShieldOverlay(int slotX, int slotY);
+    void drawPausePanel();
+    void renderStatsOverlay(rs_knl::MapObject *pObj);
+    ///@}
+    
+    //! Return the value to scroll if mouse is close to border
+    int isMousePositionScrollonX(Point2D point);
+    //! Return the value to scroll if mouse is close to border
+    int isMousePositionScrollonY(Point2D point);
+    //! Handles map panning from mouse edge hover and arrow keys
+    void handleMapPanning(const Point2D &mousePos);
+    //! Initialize MapRenderer and MinimapRenderer
+    void initRenderers();
+    //! Selects/deselects an agent
+    void selectAgent(size_t agentNo, bool addToGroup);
+    //! Selects/deselects all agents
+    void selectAllAgents();
+    //! Reacts to a weapon selection/deselection
+    void handleWeaponSelection(uint8_t weapon_idx, bool ctrl);
+
+    //! Deselect agent if he died
+    void updateSelectionForDeadAgent(rs_knl::PedInstance *p_ped);
+    //! updates visual markers for our agents
+    void highlightLeaderMarker();
+    //! Set basePt param with point on the map where player clicked to shoot
+    bool getAimedAt(rs_knl::TilePoint &basePt);
+    void stopShootingEvent();
+    //! Centers the minimap on the selection leader
+    void centerMinimapOnLeader();
+    //! Update the select all button state
+    void updateSelectAll();
+
+protected:
+    /*! Origin of the minimap on the screen.*/
+    static const Point2D kMiniMapScreenPos;
+    //! Maximum time in millisecond to detect a double press on a key
+    static const uint32_t kDoublePressMs;
+
+    uint32_t tick_count_, last_animate_tick_;
+    int last_motion_x_, last_motion_y_;
+  
+    //! Text of the hint to display
+    std::string hint_;
+    //! Color to draw the hint text
+    uint8_t hintColor_;
+    //! Yellow rect displayed when the objective name is displayed to accentuate text
+    bool drawHintYellowRect_;
+    /*!
+     * Timer to alternate between agent action and mission objective
+     * When state is true, we display ped status.
+     * When state if false, we display mission's objective
+     */
+    rs_utl::BoolTimer hintTimer_;
+    //! Timer to control blinking color of hint when displaying objectives.
+    rs_utl::BoolTimer hintColorTimer_;
+    //! Timer to control the display of Press space message when mission is over
+    rs_utl::BoolTimer hintSpaceTimer_;
+    uint32_t needMoneyTimer_{0};
+    uint32_t airRaidCountdownRemaining_{0};
+
+    rs_knl::Mission *mission_;
+
+    /*! Holds the amount of scroll on the X & Y axis.*/
+    Point2D scroll_;
+    /*! Agent selection manager.*/
+    SquadSelection selection_;
+    /*! Object mouse cursor is above*/
+    rs_knl::ShootableMapObject *target_;
+    //! The palette of colors used for this mission
+    rs_eng::Palette missionPalette_;
+    /*! This renderer is in charge of drawing the map.*/
+    MapRenderer map_renderer_;
+    /*! This renderer is in charge of drawing the minimap.*/
+    GamePlayMinimapRenderer mm_renderer_;
+    /*! This renderer is in charge of drawing the IPA meters.*/
+    AgentSelectorRenderer agt_sel_renderer_;
+    //! A flag to keep track of the state of the select all button
+    bool isButtonSelectAllPressed_;
+    /*! Flag to store the fact that player is currently shooting.*/
+    bool isPlayerShooting_;
+    /*! Flag to play the sound of police warning an agent.*/
+    bool canPlayPoliceWarnSound_;
+    /*! Delay between 2 police warnings.*/
+    rs_utl::Timer warningTimer_;
+    //! Used to store the last time we selected a ped (used for double press)
+    uint32_t lastSelectionTick_;
+
+    //! Handles used for removing listener
+    ListenerHandle handleAgentDied_;
+    ListenerHandle handleWeaponSelected_;
+    ListenerHandle handleAgentWarned_;
+    ListenerHandle handleMissionEnded_;
+
+    // when ipa is manipulated this represents
+    struct IPA_manipulation {
+        // ipa that is manipulated
+        int8_t ipa_chng;
+        // agent to base IPA's update on
+        size_t agent_used;
+    } ipa_chng_;
+};
+
+#endif

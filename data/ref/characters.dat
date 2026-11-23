@@ -1,0 +1,50 @@
+# ReSyndicated - Character Attributes Configuration (characters.dat)
+# All values can be modified without recompiling the executable.
+
+# Player Agent
+character.agent.speed=178
+character.agent.health=16
+character.agent.sight_range=1792
+character.agent.base_accuracy=0.50
+character.agent.time_before_check=400
+character.agent.persuasion_cost=8
+
+# Enemy Agent
+character.enemy_agent.speed=178
+character.enemy_agent.health=16
+character.enemy_agent.sight_range=1500
+character.enemy_agent.base_accuracy=0.50
+character.enemy_agent.time_before_check=400
+character.enemy_agent.persuasion_cost=8
+
+# Guard
+character.guard.speed=128
+character.guard.health=1
+character.guard.sight_range=1500
+character.guard.base_accuracy=0.45
+character.guard.time_before_check=300
+character.guard.persuasion_cost=2
+
+# Police
+character.police.speed=128
+character.police.health=1
+character.police.sight_range=1500
+character.police.base_accuracy=0.40
+character.police.time_before_check=400
+character.police.persuasion_cost=4
+
+# Civilian
+character.civilian.speed=128
+character.civilian.health=1
+character.civilian.sight_range=1500
+character.civilian.base_accuracy=0.20
+character.civilian.time_before_check=600
+character.civilian.persuasion_cost=1
+
+# Criminal
+character.criminal.speed=128
+character.criminal.health=1
+character.criminal.sight_range=1500
+character.criminal.base_accuracy=0.20
+character.criminal.time_before_check=500
+character.criminal.persuasion_cost=1

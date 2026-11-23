@@ -1,0 +1,139 @@
+[1.0.0] - 2026-11-22
+- Bumped version to 1.0.0
+- Cleaned up packaging
+- Updated README.md to ready the project for its first official release on Github.
+
+[0.23.0] - 2026-11-20
+- Full rebranding from FreeSynd to ReSyndicated
+
+[0.22.0] - 2026-11-18
+- Aligned V1–V3 cybernetic IPA effect consumption (~9.14x at V3) and dependency regeneration (~6.5x at V3) pacing with the original DOS *Syndicate* wraparound tick curves, and preserved sub-millisecond remainders across per-frame ticks to eliminate V3 timing drift.
+- Improved off-road to on-road vehicle pathing so parked or off-road cars evaluate reachable road lanes across multi-lane streets and glide directly into the aligned travel lane without entering wrong-way lanes or making unnecessary corner reversals.
+- Fixed vehicle cornering sprite flicker during turns (especially right/down to left/down) using path lookahead steering and moving sprite-sector hysteresis, with expanded Catch2 test coverage in `ipatest.cpp` and `vehicletest.cpp` and synchronized documentation in `docs/CHARACTERS.md`.
+- Fixed NPC initial IPA loading (`Adrenaline`, `Intelligence`, and `Perception`) to read active effect and preset lock overrides from mission data rather than neutral midpoints, restoring authentic extended detection ranges for high-Perception Police, Guards, and Civilians.
+- Aligned Civilian panic detection radius with Perception scaling (1,500 neutral baseline up to 2,560 at max Perception), added panic triggers for direct attackers beyond sight range, and preserved flee hysteresis until clear of threat range.
+- Implemented variable Police disengagement cooldown (~0.75–2.6 seconds based on Adrenaline and encounter timing) when an engaged suspect holsters their weapon, allowing officers to continue pursuit and fire before standing down (and stay engaged if the suspect re-arms), per original Syndicate game behavior.
+- Capped scripted guard ambush trigger evaluation at the 15-tile awareness radius so high-Perception guards do not detect players through distant walls.
+- Updated `docs/CHARACTERS.md` and expanded Catch2 test coverage for NPC IPA detection/panic scaling and Police disengagement cooldown.
+
+[0.21.0] - 2026-11-18
+- Refined the Mission Editor UI: added a Tile Preview box and formatted tile types as `Type (#ID)` without hex clutter, removed the redundant Eyedropper tool, fixed `P`/`B`/`V`/`S` shortcuts across tabs and search views, gave Player's Agents a distinct bright-green footprint outline, and improved the AI Tactics and Save Complete dialogs (wrapped long text, added `🚩` root node indicators and Wildcard explanations, and removed unsupported Node Disabled option).
+- Updated flamethrower projectile stepping, Chest cybernetic burn/bullet mitigation and regeneration timing, IPA Perception/Intelligence scaling, and weapon impact ignition on trees, along with synchronized specs in `data/ref/weapons.dat`, `data/ref/characters.dat`, `docs/WEAPONS.md`, and `docs/CHARACTERS.md`.
+- Fixed combat recoil damage handling so subsequent hits continue inflicting damage during knockback recoil, matching original DOS Syndicate weapon time-to-kill.
+- Added unfenced void recoil transitions and progressive sinking animations (`sinkAnimation`) when pedestrians are knocked off map edges.
+- Updated mission binary export to rebuild per-tile spatial entity linked lists for compatibility with the original DOS Syndicate executable.
+- Expanded Catch2 unit test coverage across mission export, recoil/void physics, flamethrower/tree ignition, and IPA/cybernetic mechanics.
+
+[0.20.1] - 2026-11-17
+- Fixed AI tactics assignment to sequentially claim unclaimed wildcard and faction root tactics across squads 1..N matching original Syndicate, and updated Mode 3 Objective Sweep tactics to engage target rival factions unconditionally.
+- Added Catch2 regression test coverage for Mission 5 sequential wildcard tactic assignment and unconditional combat sweep activation in aitacticstest.cpp.
+- Fixed Mission Editor entity occlusion detection so pedestrians, vehicles, and ground weapons hidden behind tall foreground building walls or roofs (even without an opaque tile directly overhead) are detected and rendered as faded X-ray ghost overlays.
+- Updated Mission Editor Entity Search results to display each matching agent's corporate faction label and color.
+- Reorganized documentation to the repository root, added updated ReSyndicated logos, and expanded the icon generation pipeline to produce application .ico resources alongside editor toolbar icons.
+
+[0.20.0] - 2026-11-13
+- Upgraded core platform and graphics subsystem from SDL2 to SDL3 and SDL3_image.
+- Migrated window management, display presentation, and texture rendering to SDL3 using logical presentation letterboxing and nearest-neighbor scaling.
+- Modernized audio subsystem to native SDL3 audio streams with callback-driven ADLMIDI music playback.
+- Implemented built-in Creative Voice (.VOC) sound decoder in the audio subsystem, supporting all original Syndicate audio assets (sound effects, menu transitions, speech, weapon fire) without external audio mixer dependencies.
+- Cleaned up comments and removed legacy SDL2 libraries, headers, and build configuration modules from the workspace.
+
+[0.19.0] - 2026-11-13
+- Added "Load Custom Mission" (F2) to the main menu, enabling browsing and direct launching of custom mission triads (gameXX.dat, mapXX.dat, missXX.dat) with full triad validation and selection dialog.
+- Elevated MissionTriad into fs_knl, creating a shared core engine module for scanning, validating, and managing mission triad files across both the game runtime and the mission editor.
+- Refactored game window menus, adding View (with Size and Zoom sub-menus) and moved Cheats under Debug.
+- Added comprehensive Catch2 unit tests in maptest.cpp and triadtest.cpp validating zoom panning constraints, boundary handling, and mission triad loading.
+
+[0.18.0] - 2026-11-11
+- Added toggleable filters in the mission editor (View -> Filters) for Buildings/Structures, Vehicles, Civilians, Police, Guards, Criminals, Agents, and Weapon Drops, with Select All and Clear All presets.
+- Added live Entity Stats Overlay in the mission editor (View -> Show Stats) displaying floating badges for pedestrians, vehicles, and weapon drops with entity IDs, total health, and non-civilian weapon loadouts with smart collision deconfliction.
+- Performed extensive codebase cleanup: removed dead code, cleaned up old terminology and references in the UI, and normalized file, class, method, and variable names.
+
+[0.17.0] - 2026-11-10
+- Added ground weapon placement in editor. Supports both original Syndicate and American Revolt expanded weapon sets.
+- Unified player agent and enemy agent placement and editing in the Entities panel, removing separate "spawn squad points" feature for player agents.
+- Improved scripted NPC route startup: entities spawned on their initial route tile immediately dispatch movement to Waypoint 1 to avoid route looping artifacts.
+- Fixed vehicle and train ground object layering: elevated trains to the ground entity draw bucket (track height + 1), compensated isometric tile depths, and sorted flat ground-lying objects (dropped weapons and dead bodies) before vehicles so cars and trains smoothly slide over them without popping or drawing underneath.
+- Fixed combat audio overlap on laser vaporization: delayed "Mission Completed" voice speech until the vaporization animation finishes, allowing the laser sound effect to finish playing cleanly, while ensuring vaporizing targets are immediately dead and un-targetable so Panic Mode agents do not waste ammo. Squad weapon fire is also halted upon mission end.
+- Added automatic campaign mission palette resolution (HPAL01.DAT–HPAL05.DAT) for both game and editor based on mission ID, accurately reflecting authentic environment themes (such as Snow for Siberia / Mission 22 and Industrial for Mission 1).
+- Added mission cybernetics tech level setting (Tier 0 Dynamic/Unaugmented, Tier 1 V1, Tier 2 V2, Tier 3 V3) in Mission Properties with per-ped custom mod overrides.
+- Updated character thumbnail preview in the Entities panel grid to use front-facing sprites.
+- Added comprehensive Catch2 unit test coverage for ground weapon editor commands, laser vaporization objective timing, panic mode disengagement, and palette resolution.
+
+[0.16.0] - 2026-11-09
+- Implemented data-driven Vehicle Configuration engine via data/ref/vehicles.dat and VehicleManager, externalizing vehicle baseline attributes (health, acceleration, max speed, collision geometries, station dwell times, and animations) matching authentic Bullfrog specifications.
+- Added full gameplay and editor support for train locomotive drivers across all pedestrian classes (civilians, police, platform guards, and agents), allowing drivers to spawn directly inside locomotives and execute automated looping routes between stations without external boarding scripts.
+- Implemented train segment destruction mechanics in game and editor: destroyed locomotives and carriages transition to burnt wreckage animations with directional offsets, eject passengers, and completely inhibit train transit.
+- Added vehicle dependency and route lifecycle management in the mission editor (DeleteVehicleCommand and ModifyEntityAttributesCommand): deleting a vehicle cleanly detaches assigned drivers, excises in-vehicle passenger route blocks while preserving pre-boarding and post-alighting steps, shifts subsequent vehicle indices, and supports full undo/redo.
+- Enhanced Mission Validator and editor pre-action checks to catch invalid or deleted vehicle route references, destroyed vehicles with assigned drivers, and destroyed vehicle targets.
+- Improved validation error reporting in editor dialogs to explicitly display offending entity descriptions and exact map coordinates.
+- Streamlined New Mission Dialog by removing redundant initial squad point controls.
+- Added comprehensive Catch2 unit test coverage for vehicle configurations, train destruction and drivers, and editor vehicle commands (vehicletest.cpp, editorcommandstest.cpp, missionvalidatortest.cpp).
+
+[0.15.0] - 2026-11-06
+- Overhauled AI Tactics engine 
+- Cleaned up Entities panel UI and tools
+- Fixed train destroyability
+- Corrected NPC and vehicle health stats
+- Fixed Mission Properties bugs and made UI improvements
+
+[0.14.0] - 2026-11-03
+- Implemented full tactical AI Finite State Machine (FSM) engine supporting 128 tactic nodes per mission (Seek & Destroy, Rival/Objective Sweep, Sentry Guard, Ambush, Patrol, Proximity Tripwire, Vehicle Boarding, Evacuation, and Delay Timers).
+- Added multi-stage proximity tripwire and countdown timer mechanics matching original game behavior, enabling realistic staged combat sweeps and inter-faction wars.
+- Implemented per-agent sentry tripwire detection against player squads where each agent acts as an independent alert sensor, transitioning squads into combat sweeps upon perimeter breach.
+- Added tactical weapon holstering during transit, ensuring pursuing agents keep weapons concealed until closing within effective range, preventing premature skirmishing and police confrontations.
+- Added non-hunter sentry reaction latency (1.5–2 seconds) when damaged while unalerted, before drawing weapons and returning fire.
+- Added torso-level vertical elevation awareness (Z+64) for line-of-sight calculations, enabling sentries on raised walkways and rooftops to acquire targets without clipping ground tiles.
+- Added self-sweep suppression and defensive clustering behaviors for surviving agents after eliminating rival target factions.
+- Implemented AI Tactics in editor with node navigation, mode/parameter editors, and full undo/redo command history.
+- Added comprehensive Catch2 unit test coverage for tactical state transitions, chained tripwires, inter-faction sweeps, and sentry alert detection (aitacticstest.cpp).
+
+[0.13.0] - 2026-11-01
+- Implemented full gameplay support for American Revolt weapons: Air Raid Com (Air Strike) and Clone Shield.
+- Integrated Air Raid Com with 5-plane V-formation strafing (3-row bullet clusters per plane, 12 fps animated bursts, 300-unit lateral spread), 10-second countdown display, $50,000 syndicate funds verification, repeated use capability, and rolling ~6.8-second 800 HP blanket bombing sweep.
+- Implemented Clone Shield holographic disguise deceiving civilians, police, and guards, while enemy syndicate agents actively see through the disguise.
+- Added embedded American Revolt fallback sprites for weapon icons and inventory selectors, enabling full functionality even with base Syndicate assets.
+- Enhanced Mission Editor Playtest Configuration dialog with Syndicate Faction & Economy settings: configurable company name, starting funds, player company color (with agent collar recoloring), and 40-logo carousel selector.
+- Overhauled in-game Settings dialog with audio device selection, music/SFX volume controls, display resolution scaling, fullscreen toggles, and data directory selection.
+- Enhanced data resolution pipeline with automatic Data Disk (DATADISK) alias detection and directory fallback logic.
+- Expanded Catch2 unit test coverage with dedicated test suites for American Revolt weapons, sprite indexing, and playtest configuration persistence.
+- Updated documentation and language localizations across English, French, German, and Italian.
+
+[0.12.0] - 2026-10-25
+- Added side-by-side DOSBox comparison harness for automated visual and memory state verification against the original game.
+- Implemented corporate faction squad recoloring for head and collar sprites (player red, rival blue, orange, and yellow).
+- Added Tactical Hunter AI support, allowing enemy agents to pursue and engage player agents map-wide.
+- Added default Pistol fallback for unequipped enemy agents.
+- Improved scripted civilian panic responses and vehicle bailout mechanics.
+- Enhanced environmental interaction with tree burning, Gauss gun physics, and time bomb detonation behaviors.
+- Added combat danger music proximity triggers matching original game behavior.
+- Adapted persuaded follower movement speed scaling under Adrenaline and smooth chest cybernetics health regeneration.
+- Renamed user configuration from user.conf to game.conf to complement editor.conf.
+- Streamlined project architecture to native Windows MSVC + Ninja build pipeline, removing legacy non-Windows files.
+- Automated release distribution packaging (build.bat package) and added dedicated VS Code packaging task.
+- Removed auto-detection searching in editor settings dialog for direct manual data directory specification.
+- Cleaned and modernized documentation across all repository guides.
+
+[0.11.0] - 2026-09-28
+- Integrated standalone native Win32 mission and tile editor (editor.exe).
+- Implemented in-editor sprite rasterization for characters, vehicles, and wall statics with orientation rendering.
+- Implemented authentic Bullfrog scanline rendering algorithm resolving door clipping, roof clipping, and vehicle ground layering.
+- Implemented obscured entity visualization for indoor/under-roof characters (guidelines, roof badges, dashed diamonds, and semi-transparent X-ray silhouettes).
+- Added relative drag-and-drop repositioning with sub-tile precision and drag thresholding.
+- Added session persistence for editor window bounds in .freesynd/editor.conf.
+- Added non-blocking asynchronous playtesting manager.
+- Enabled RNC-compressed saving and deduplication of mission/tilemap data.
+- Improved vehicle pathing, momentum preservation, turning animations, and car avoidance logic.
+- Improved persuaded NPC AI, weapon finding, wielding behaviors, and reticle targeting.
+- Corrected civilian panic mode, enemy agent walking speeds, and hit recoil animations.
+- Externalized character stats to characters.dat and added custom squad loadout configuration support (--loadout).
+- Fixed train onboarding, offboarding, and platform walkable tiles in multi-train missions.
+- Fixed character laser hit and death animations.
+
+[0.10.0] - 2026-07-31
+- Added 3D spatial grid acceleration for large doors and object collision checks.
+- Implemented A* vehicle pathfinding with car inter-blocking and pedestrian crossing detection.
+- Added Tracy profiling integration.
+- Added support for loading custom test maps and extended Catch2 kernel test coverage.
+- Refactored ped action states and weapon explosion delays.
+- Synchronized level data format handlers with RNC compression specifications.

@@ -1,0 +1,69 @@
+# ReSyndicated - Vehicle Attributes Configuration (vehicles.dat)
+# All values can be modified without recompiling the executable.
+
+# Regular Car (Civic sedan)
+vehicle.regular_car.name=Regular Car
+vehicle.regular_car.type_id=13
+vehicle.regular_car.health=30
+vehicle.regular_car.speed=1024
+vehicle.regular_car.acceleration=1400
+vehicle.regular_car.base_anim=446
+
+# Armored Car (Utility / Armored vehicle)
+vehicle.small_armored.name=Armored Car
+vehicle.small_armored.type_id=28
+vehicle.small_armored.health=10
+vehicle.small_armored.speed=768
+vehicle.small_armored.acceleration=1000
+vehicle.small_armored.base_anim=534
+
+# Large Armored (Heavy Tank / APC)
+vehicle.large_armored.name=Large Armored
+vehicle.large_armored.type_id=1
+vehicle.large_armored.health=600
+vehicle.large_armored.speed=640
+vehicle.large_armored.acceleration=800
+vehicle.large_armored.base_anim=400
+
+# Police Car (High-speed patrol interceptor)
+vehicle.police.name=Police Car
+vehicle.police.type_id=36
+vehicle.police.health=120
+vehicle.police.speed=1280
+vehicle.police.acceleration=1800
+vehicle.police.base_anim=470
+
+# Ambulance (Medical response van)
+vehicle.ambulance.name=Ambulance
+vehicle.ambulance.type_id=40
+vehicle.ambulance.health=115
+vehicle.ambulance.speed=1150
+vehicle.ambulance.acceleration=1400
+vehicle.ambulance.base_anim=494
+
+# Firetruck (Heavy emergency response vehicle)
+vehicle.firetruck.name=Firetruck
+vehicle.firetruck.type_id=17
+vehicle.firetruck.health=40
+vehicle.firetruck.speed=1024
+vehicle.firetruck.acceleration=1000
+vehicle.firetruck.base_anim=518
+
+# Train Locomotive (Lead / Tail Engine)
+vehicle.train_head.name=Train Locomotive
+vehicle.train_head.type_id=5
+vehicle.train_head.health=100
+vehicle.train_head.speed=1280
+vehicle.train_head.acceleration=1600
+vehicle.train_head.dwell_time=10000
+vehicle.train_head.base_anim=416
+
+# Train Carriage (Passenger Coaches)
+vehicle.train_carriage.name=Train Carriage
+vehicle.train_carriage.type_id=9
+vehicle.train_carriage.health=80
+vehicle.train_carriage.speed=0
+vehicle.train_carriage.acceleration=0
+vehicle.train_carriage.dwell_time=10000
+vehicle.train_carriage.base_anim=428
+

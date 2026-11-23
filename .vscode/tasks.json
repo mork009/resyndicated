@@ -1,0 +1,121 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build ReSyndicated (Debug)",
+            "type": "shell",
+            "command": "cmd /c build.bat debug",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build ReSyndicated (Release)",
+            "type": "shell",
+            "command": "cmd /c build.bat release",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Package ReSyndicated Distribution (Release ZIP)",
+            "type": "shell",
+            "command": "cmd /c build.bat package",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "Configure CMake Debug (MSVC + Ninja)",
+            "type": "shell",
+            "command": "cmd /c build.bat debug --configure",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Configure CMake Release (MSVC + Ninja)",
+            "type": "shell",
+            "command": "cmd /c build.bat release --configure",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Clean Build Files",
+            "type": "shell",
+            "command": "powershell -Command \"Remove-Item -Path 'build' -Recurse -Force -ErrorAction SilentlyContinue\"",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "Run Kernel Tests (Debug)",
+            "type": "shell",
+            "command": "cmd /c test.bat debug",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Kernel Tests (Release)",
+            "type": "shell",
+            "command": "cmd /c test.bat release",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "Generate All Icons",
+            "type": "shell",
+            "command": "python editor/scripts/generate_editor_icons.py --input \"${input:iconSourcePath}\" --logo \"${input:logoSourcePath}\"",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "group": "build"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "iconSourcePath",
+            "type": "promptString",
+            "description": "Path to editor icon grid image or directory with 24 icon images:",
+            "default": "data/resources/editor_icons.png"
+        },
+        {
+            "id": "logoSourcePath",
+            "type": "promptString",
+            "description": "Path to source logo image (.png) for application and executable .ico icons:",
+            "default": "data/resources/logo.png"
+        }
+    ]
+}
