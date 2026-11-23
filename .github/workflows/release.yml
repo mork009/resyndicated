@@ -62,5 +62,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          $files = Get-ChildItem -Path "build/ninja-msvc-x64-release/PackageOutput" -Include *.zip, *.sha256 -File | Select-Object -ExpandProperty FullName
-          gh release create $tag $files --title "ReSyndicated $tag" --generate-notes
+          $files = @(Get-ChildItem -Path "build/ninja-msvc-x64-release/PackageOutput/*" -Include *.zip, *.sha256 -File | Select-Object -ExpandProperty FullName)
+          if ($files.Count -eq 0) {
+            throw "No release package files found in build/ninja-msvc-x64-release/PackageOutput"
+          }
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --title "ReSyndicated $tag" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
