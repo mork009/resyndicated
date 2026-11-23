@@ -8,9 +8,9 @@
 
 # ReSyndicated
 
-ReSyndicated is a modern, open-source reimplementation of Bullfrog's classic cyberpunk strategy game *[Syndicate](https://en.wikipedia.org/wiki/Syndicate_\(1993_video_game\))* (and its expansion *[American Revolt](https://en.wikipedia.org/wiki/Syndicate:_American_Revolt)*) for Windows. Built in C++20, it features hardware-accelerated SDL3 rendering, native audio stream mixing, and a full mission and map editor.
+ReSyndicated is a modern, open-source reimplementation of Bullfrog's classic cyberpunk strategy game *[Syndicate](https://en.wikipedia.org/wiki/Syndicate_\(1993_video_game\))* (and its expansion *[American Revolt](https://en.wikipedia.org/wiki/Syndicate:_American_Revolt)*). Built in C++20, it features hardware-accelerated SDL3 rendering, native audio stream mixing, and a full mission and map editor.
 
-At this time, ReSyndicated is only supported on Windows and requires the original game data files (art, audio, map, mission assets). However, the long term goal of this project is to fully rebuild the original assets to make ReSyndicated no longer reliant on copyrighted files and to "remaster" the game with modern high resolution graphics while retaining the original game's aesthetics, gameplay, storyline, and missions.
+The game builds on Windows and macOS. On macOS the game uses native menus, and the mission editor runs through Wine. ReSyndicated requires the original game data files (art, audio, map, mission assets). However, the long term goal of this project is to fully rebuild the original assets to make ReSyndicated no longer reliant on copyrighted files and to "remaster" the game with modern high resolution graphics while retaining the original game's aesthetics, gameplay, storyline, and missions.
 
 **Project**: [https://github.com/mork009/resyndicated/](https://github.com/mork009/resyndicated/)
 
@@ -79,7 +79,7 @@ See [`LICENSE.md`](LICENSE.md) for full license text and terms.
 > **Original Syndicate Game Data Files Required**  
 > Due to copyright and license restrictions, ReSyndicated does not distribute original *Syndicate* assets. You must provide a legally acquired copy of the original *Syndicate* game data files. All verions of the original *Syndicate* game, *American Revolt* expansion, and *Syndicate Plus* bundle are fully supported, including the [GOG version](https://www.gog.com/en/game/syndicate).
 
-### Quick Start
+### Quick Start (Windows)
 
 1. Download and extract the latest `.zip` [release](https://github.com/mork009/resyndicated/releases/) archive into your desired folder.
 
@@ -91,7 +91,41 @@ See [`LICENSE.md`](LICENSE.md) for full license text and terms.
 
 4. Upon first run, the game/editor will ask you to select the `DATA` folder from step 2 and will indicate (a) if all the necessary files are present and (b) which version of Syndicate you've pointed to. You can change the `DATA` folder path later via the `File -> Settings...` menu in the game and editor.
 
-### Building from Source (Windows only)
+### Building the game on macOS
+
+With Xcode Command Line Tools and Homebrew installed, run these commands from the repository root.
+
+```sh
+brew install cmake ninja sdl3 sdl3_image libpng cli11 utf8cpp tracy catch2
+cmake -S . -B build/macos -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/macos
+open build/macos/game/ReSyndicated.app
+```
+
+On first launch, select the `DATA` folder from your copy of *Syndicate* or *American Revolt*. The game saves this choice in `~/.resynd/resynd.conf`. To change folders later, choose **File → Settings** (⌘,). The **View** menu controls window size, map zoom and fullscreen. **Debug** contains the overlays and cheats.
+
+The app uses the Homebrew runtime libraries installed on the build machine. For command-line options, run `build/macos/game/ReSyndicated.app/Contents/MacOS/ReSyndicated --help`. To run the tests with your game data, use `RESYND_DATA_DIR="/path/to/DATA" ctest --test-dir build/macos --output-on-failure`.
+
+### Running the mission editor on macOS
+
+After configuring the macOS build above, build and open the editor separately.
+
+```sh
+cmake --build build/macos --target resynd_editor
+open "build/macos/editor/ReSyndicated Editor.app"
+```
+
+This target packages the upstream Windows v1.0.0 editor, its matching game for F5 playtesting, and Wine 11.21 in one app. The first build downloads about 233 MB and checks both archives against pinned SHA-256 hashes. Apple Silicon requires Rosetta. [Editor release](https://github.com/mork009/resyndicated/releases/tag/v1.0.0) · [Wine runtime](https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.21)
+
+On first launch, the editor uses the native game's configured `DATA` folder if available. The editor can overwrite mission files, so choose a working copy for editing. You can pass a Mac folder path directly when launching the editor.
+
+```sh
+open "build/macos/editor/ReSyndicated Editor.app" --args --data "/path/to/working copy/DATA"
+```
+
+The editor keeps its Windows settings in a dedicated Wine prefix under `~/Library/Application Support/ReSyndicated/EditorWine`. In its file picker, drive `Z:` corresponds to the Mac filesystem. The editor accepts the Windows shortcuts listed below, including Ctrl+S to save and F5 to playtest.
+
+### Building from Source (Windows)
 
 #### Prerequisites
 

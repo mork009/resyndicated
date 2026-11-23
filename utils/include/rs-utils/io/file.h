@@ -44,6 +44,7 @@ namespace rs_utl {
     */
     class File {
     public:
+        static fs::path getExecutableDirectory();
         //! Return the path for the unified resynd.conf file
         static bool getResyndConfFullPath(fs::path& confFullPath);
         //! Return the path for the user folder

@@ -36,14 +36,15 @@ add_executable(test-kernel
     maptest.cpp
     rnctest.cpp
     triadtest.cpp
-    editorconfigtest.cpp
     missionvalidatortest.cpp
     aitacticstest.cpp
-    editorcommandstest.cpp
-    ../../editor/core/editor_config.cpp
-    ../../editor/core/mission_validator.cpp
-    ../../editor/core/editor_commands.cpp
-    ../../editor/dialogs/objective_dialog.cpp)
+    ../../editor/core/mission_validator.cpp)
+
+if(WIN32)
+    target_sources(test-kernel PRIVATE editorconfigtest.cpp editorcommandstest.cpp
+        ../../editor/core/editor_config.cpp ../../editor/core/editor_commands.cpp
+        ../../editor/dialogs/objective_dialog.cpp)
+endif()
 
 target_include_directories(test-kernel PRIVATE
     ${CMAKE_SOURCE_DIR}/editor

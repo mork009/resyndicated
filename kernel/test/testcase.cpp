@@ -26,17 +26,6 @@
 #include <cstdlib>
 #include <filesystem>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-static std::filesystem::path getExecutableDirectory() {
-    char buf[MAX_PATH];
-    DWORD len = GetModuleFileNameA(NULL, buf, MAX_PATH);
-    if (len > 0) {
-        return std::filesystem::path(buf).parent_path();
-    }
-    return std::filesystem::current_path();
-}
-
 #include "testcase.h"
 #include "rs-utils/io/file.h"
 
@@ -71,7 +60,7 @@ std::string getTestDataFolder() {
     }
 
     // 3. Search upwards from executable directory
-    std::filesystem::path exeP = getExecutableDirectory();
+    std::filesystem::path exeP = rs_utl::File::getExecutableDirectory();
     for (int i = 0; i < 6; ++i) {
         if (std::filesystem::exists(exeP / "synd" / "SYNDICAT" / "DATA" / "GAME01.DAT") ||
             std::filesystem::exists(exeP / "synd" / "SYNDICAT" / "DATA" / "game01.dat")) {

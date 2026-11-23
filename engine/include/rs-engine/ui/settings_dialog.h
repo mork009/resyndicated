@@ -23,8 +23,10 @@
 #ifndef RS_ENGINE_SETTINGS_DIALOG_H_
 #define RS_ENGINE_SETTINGS_DIALOG_H_
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -52,6 +54,9 @@ struct DataValidationResult {
 //! Validates whether originalDir contains required Syndicate DOS files and bundled ReSyndicated assets exist
 DataValidationResult verifyDataDirectories(const std::filesystem::path &originalDir);
 
+bool showGameDataSetup(const std::string &initialPath, std::string &selectedPath);
+
+#ifdef _WIN32
 //! Opens the native Windows folder picker
 bool browseForFolder(HWND hOwner, const std::wstring &title, std::wstring &outFolder);
 
@@ -63,13 +68,15 @@ bool showDataDirSetupDialog(HWND hParent, const std::string &initialPath, std::s
 //! Returns true if user clicked Save/OK with a valid path, false if cancelled.
 bool showSettingsDialog(HWND hParent, const std::string &currentPath, std::string &outNewDataDir, const std::wstring &appTitle = L"ReSyndicated");
 
-//! Helper to persist data_dir and optional data_signature into resynd.conf
-bool saveOriginalDataDirToResyndConf(const std::string &dataDir, const std::string &dataSignature = "");
-
 //! Compares two filesystem paths (canonicalizing separators, relative/absolute differences, case-insensitivity on Windows)
 //! Returns true if they point to different filesystem locations.
 bool pathsAreDifferent(const std::string &p1, const std::string &p2);
 bool pathsAreDifferent(const std::wstring &p1, const std::wstring &p2);
+
+#endif
+
+//! Helper to persist data_dir and optional data_signature into resynd.conf
+bool saveOriginalDataDirToResyndConf(const std::string &dataDir, const std::string &dataSignature = "");
 
 } // namespace rs_eng
 

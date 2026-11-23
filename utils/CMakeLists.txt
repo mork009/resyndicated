@@ -50,9 +50,7 @@ set(SOURCE_LIST
 add_library(rs_utils ${SOURCE_LIST} ${HEADER_LIST})
 add_library(ReSyndicated::Utils ALIAS rs_utils)
 
-find_package(CRCpp REQUIRED)
-
-target_link_libraries (rs_utils PRIVATE resynd_warnings crcpp::crcpp)
+target_link_libraries(rs_utils PRIVATE resynd_warnings)
 
 # We need this directory, and users of our library will need it too (ie PUBLIC)
 target_include_directories(rs_utils PUBLIC include)

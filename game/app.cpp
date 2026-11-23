@@ -28,8 +28,6 @@
 
 #include "app.h"
 
-#include <windows.h>
-
 #include <iostream>
 #include <fstream>
 #include <set>

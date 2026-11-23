@@ -33,6 +33,10 @@ project(
   HOMEPAGE_URL "https://github.com/mork009/resyndicated/"
   LANGUAGES CXX)
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -51,10 +55,11 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_D
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/utils/include/rs-utils/version.h)
 
 # Search the bundled libs directory when using MSVC.
-list(PREPEND CMAKE_PREFIX_PATH
-    "${CMAKE_SOURCE_DIR}/extern/sdl3"
-    "${CMAKE_SOURCE_DIR}/extern/SDL3_image"
-)
+if(WIN32)
+    list(PREPEND CMAKE_PREFIX_PATH
+        "${CMAKE_SOURCE_DIR}/extern/sdl3"
+        "${CMAKE_SOURCE_DIR}/extern/SDL3_image")
+endif()
 
 #################################
 # Compilation flags management
@@ -97,10 +102,12 @@ else()
     message(STATUS "Doxygen not found, not building docs")
 endif()
 
-find_package(Catch2 3 REQUIRED)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     include(CTest)
-    include(Catch)
+    if(BUILD_TESTING)
+        find_package(Catch2 3 REQUIRED)
+        include(Catch)
+    endif()
 endif()
 
 option(ENABLE_TRACY "Enable Tracy profiler instrumentation" OFF)
@@ -111,17 +118,22 @@ message(STATUS "Tracy profiler enabled")
 
 
 # Build the sources in these subdirectory.
+set(RESYND_DATA_SUBDIRS cursors lang ref resources)
 add_subdirectory (data)
 add_subdirectory (utils)
 add_subdirectory (engine)
 add_subdirectory (kernel)
 add_subdirectory (game)
-add_subdirectory (editor)
+if(WIN32)
+    add_subdirectory(editor)
+elseif(APPLE)
+    add_subdirectory(editor/macos editor)
+endif()
 
 #################################
 # For all packaging instructions
 # Only in Release mode
 #################################
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
     include(Packing)
 endif()
