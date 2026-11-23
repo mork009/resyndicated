@@ -88,10 +88,13 @@ public:
     bool isScaleAllowed(int scale) const override;
     void setWindowDimensions(int width, int height) override;
     void setMapZoom(double zoomFactor) override;
+#ifdef _WIN32
     void updateWindowMenuScales();
+#endif
 
     //! Pumps an event from the event queue
     bool pumpEvents(RS_Event &evtOut) override;
+    void handleMenuCommand(int command);
 
     void delay(uint32_t msec) override;
     uint32_t getTicks() override;
@@ -157,7 +160,6 @@ protected:
 
 #if defined(_WIN32)
     static bool SDLCALL win32MessageHook(void *userdata, MSG *msg);
-    void handleMenuCommand(int wmId, HWND hParent);
 #endif
 
 protected:
@@ -178,10 +180,14 @@ protected:
     SDL_Window *pWindow_;
     //! The renderer is necessary to manipulate SDL_Texture and use graphic acceleration
     SDL_Renderer *pRenderer_;
+#ifdef _WIN32
     void *hWindowMenu_;
     void *hMapZoomMenu_;
     void *hViewMenu_;
     void *hDebugMenu_;
+#elif defined(__APPLE__)
+    void *macMenuController_ = nullptr;
+#endif
 
     /*!
      * A texture that holds all cursors images.

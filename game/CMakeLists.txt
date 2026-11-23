@@ -71,11 +71,25 @@ set(HEADERS
 source_group(Menus REGULAR_EXPRESSION menus/*)
 source_group(Core REGULAR_EXPRESSION core/*)
 
-set(WIN_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/resynd.rc")
-set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/resynd.rc" PROPERTIES OBJECT_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/logo.ico"
-)
-add_executable (resynd_game WIN32 ${SOURCES} ${HEADERS} ${WIN_RESOURCES})
+add_executable(resynd_game WIN32 ${SOURCES} ${HEADERS})
+if(APPLE)
+    set_target_properties(resynd_game PROPERTIES
+        MACOSX_BUNDLE TRUE
+        OUTPUT_NAME ReSyndicated
+        MACOSX_BUNDLE_BUNDLE_NAME ReSyndicated
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.resyndicated.game
+        MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}")
+    foreach(subdir IN LISTS RESYND_DATA_SUBDIRS)
+        file(GLOB resources CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/data/${subdir}/*")
+        set_source_files_properties(${resources} PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources/data/${subdir}")
+        target_sources(resynd_game PRIVATE ${resources})
+    endforeach()
+elseif(WIN32)
+    target_sources(resynd_game PRIVATE resynd.rc)
+    set_source_files_properties(resynd.rc PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/logo.ico")
+endif()
 
 target_link_libraries (resynd_game PRIVATE resynd_warnings ReSyndicated::Utils ReSyndicated::Engine ReSyndicated::Kernel SDL3::SDL3)
 add_dependencies (resynd_game bundle_resynd_data)

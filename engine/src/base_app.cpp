@@ -56,7 +56,7 @@ int CliParam::parseCommandLine(int argc, char *argv[]) {
     app.add_option("-d,--data", customDataDir_, "Specify the path to the original Syndicate data files.")->option_text("<path>");
     app.add_flag("--settings", forceSettingsDialog_, "Open settings dialog to configure data path.");
 
-    std::string desc = "Specify the directory where to find the resynd.conf file. (default: %USERPROFILE%\\.resynd)";
+    std::string desc = "Specify the directory where to find the resynd.conf file. (default: .resynd in your home directory)";
     app.add_option("-u,--conf", confFolderPath_, desc)->option_text("<path>");
 
 #ifdef _DEBUG
@@ -81,9 +81,11 @@ int CliParam::parseCommandLine(int argc, char *argv[]) {
         std::cout.flush();
         fflush(stdout);
         if(e.get_name() == "CallForHelp") {
+#ifdef _WIN32
             if (GetConsoleWindow() == NULL) {
                 MessageBoxA(NULL, app.help().c_str(), "ReSyndicated Help", MB_OK | MB_ICONINFORMATION);
             }
+#endif
             return -1;
         }
 		return 1;
@@ -194,7 +196,7 @@ bool BaseApp::initialize() {
             if (!val.isValid || promptSettings) {
                 promptSettings = false;
                 std::string selectedDir;
-                if (rs_eng::showDataDirSetupDialog(nullptr, effectiveDataDir, selectedDir, L"ReSyndicated")) {
+                if (rs_eng::showGameDataSetup(effectiveDataDir, selectedDir)) {
                     effectiveDataDir = selectedDir;
                     rs_utl::File::setOriginalDataFolder(effectiveDataDir);
                     storedSig = rs_utl::File::computeDataSignature(effectiveDataDir);

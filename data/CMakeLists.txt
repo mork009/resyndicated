@@ -19,30 +19,25 @@
 #  along with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 
-set(RESYND_DATA_SUBDIRS cursors lang ref resources)
-
 add_custom_target(bundle_resynd_data ALL
     COMMENT "Bundling ReSyndicated data files into build directories"
 )
 
-foreach(SUBDIR ${RESYND_DATA_SUBDIRS})
-    add_custom_command(TARGET bundle_resynd_data PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/game/data/${SUBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}"
-            "${CMAKE_BINARY_DIR}/game/data/${SUBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/editor/data/${SUBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}"
-            "${CMAKE_BINARY_DIR}/editor/data/${SUBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/kernel/test/data/${SUBDIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}"
-            "${CMAKE_BINARY_DIR}/kernel/test/data/${SUBDIR}"
-    )
-endforeach()
+if(WIN32)
+    set(data_destinations game/data editor/data)
+endif()
+if(BUILD_TESTING)
+    list(APPEND data_destinations kernel/test/data)
+endif()
 
-# Install ReSyndicated bundled data directory for distribution packaging
-foreach(SUBDIR ${RESYND_DATA_SUBDIRS})
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}" DESTINATION "data")
+foreach(subdir IN LISTS RESYND_DATA_SUBDIRS)
+    foreach(dest IN LISTS data_destinations)
+        add_custom_command(TARGET bundle_resynd_data PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}" "${CMAKE_BINARY_DIR}/${dest}/${subdir}"
+            VERBATIM)
+    endforeach()
+    if(NOT APPLE)
+        install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}" DESTINATION data)
+    endif()
 endforeach()

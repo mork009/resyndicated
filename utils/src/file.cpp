@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <cctype>
 #include <iostream>
+#include <iterator>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -39,8 +40,11 @@
 #include <format>
 #include <memory>
 
+#ifdef _WIN32
 #include <windows.h>
-#include <io.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 
 #include "rs-utils/common.h"
 #include "rs-utils/io/dernc.h"
@@ -55,15 +59,20 @@ namespace rs_utl {
     fs::path File::savePath_ = ".";
     fs::path File::userConfFolderPath_ = "";
 
-static std::string exeFolder() {
-    char buf[1024];
-    GetModuleFileName(NULL, buf, 1024);
-    std::string tmp(buf);
-    size_t pos = tmp.find_last_of('\\');
-    if (pos != std::string::npos) tmp.erase(pos + 1);
-    else tmp = ".";
-    return tmp;
-}
+    fs::path File::getExecutableDirectory() {
+#ifdef _WIN32
+        wchar_t path[32768];
+        DWORD length = GetModuleFileNameW(nullptr, path, std::size(path));
+        if (length && length < std::size(path)) return fs::path(path).parent_path();
+#elif defined(__APPLE__)
+        uint32_t size = 0;
+        _NSGetExecutablePath(nullptr, &size);
+        std::vector<char> path(size);
+        if (_NSGetExecutablePath(path.data(), &size) == 0)
+            return fs::canonical(path.data()).parent_path();
+#endif
+        return fs::current_path();
+    }
 
     bool File::getOrCreateUserConfFolder(const std::string& userConfFolder) {
         if (userConfFolder.size() != 0) {
@@ -80,7 +89,11 @@ static std::string exeFolder() {
         // We need to use default path and create folder if it does not exist
         // On all platforms, we use the user's home folder.
         // On Windows, home is defined using USERPROFILE env variable
+#ifdef _WIN32
         const char *up = getenv("USERPROFILE");
+#else
+        const char *up = getenv("HOME");
+#endif
         userConfFolderPath_ = up ? fs::path(up) : fs::current_path();
 
         userConfFolderPath_ /= ".resynd";
@@ -287,7 +300,7 @@ static std::string exeFolder() {
     }
 
     /*!
-    * @brief Sets path to ReSyndicated bundled data folder. If empty, uses exeFolder()/data or ./data.
+    * @brief Sets path to ReSyndicated bundled data folder. If empty, uses getExecutableDirectory()/data or ./data.
     * @param path
     */
     void File::setResyndDataFolder(const std::string& path) {
@@ -295,7 +308,15 @@ static std::string exeFolder() {
             ourDataPath_ = path;
         } else {
             // Prioritize live workspace data directory when running in dev/repo tree
-            fs::path exeDir = exeFolder();
+            fs::path exeDir = getExecutableDirectory();
+#ifdef __APPLE__
+            // A Finder launch can have an unrelated working directory.
+            fs::path resources = exeDir.parent_path() / "Resources" / "data";
+            if (exeDir.filename() == "MacOS" && fs::is_directory(resources)) {
+                ourDataPath_ = resources;
+                return;
+            }
+#endif
             if (fs::exists(fs::current_path() / "data" / "ref" / "characters.dat")) {
                 ourDataPath_ = fs::current_path() / "data";
             } else if (fs::exists(exeDir / ".." / ".." / ".." / "data" / "ref" / "characters.dat")) {
@@ -647,7 +668,8 @@ static std::string exeFolder() {
                         std::string expectedMap = std::format("map{:02}.dat", mapNum);
                         bool mapFound = false;
                         for (const auto &mName : mapFiles) {
-                            if (_stricmp(mName.c_str(), expectedMap.c_str()) == 0) {
+                            if (std::equal(mName.begin(), mName.end(), expectedMap.begin(), expectedMap.end(),
+                                    [](unsigned char a, unsigned char b) { return std::tolower(a) == b; })) {
                                 mapFound = true;
                                 break;
                             }

@@ -88,6 +88,9 @@ set(SOURCE_LIST
 find_package (PNG REQUIRED)
 find_package (CLI11 REQUIRED)
 find_package (utf8cpp REQUIRED)
+if(TARGET utf8cpp::utf8cpp AND NOT TARGET utf8cpp)
+    add_library(utf8cpp ALIAS utf8cpp::utf8cpp)
+endif()
 
 # This is the main library for this directory
 add_library(rs_engine ${SOURCE_LIST} ${HEADER_LIST})
@@ -96,7 +99,10 @@ add_library(ReSyndicated::Engine ALIAS rs_engine)
 # We need this directory, and users of our library will need it too
 target_include_directories(rs_engine PUBLIC include)
 
-target_link_libraries(rs_engine PRIVATE resynd_warnings ReSyndicated::Utils PNG::PNG CLI11::CLI11 utf8cpp comctl32 dwmapi ole32 shell32 uxtheme msimg32)
+target_link_libraries(rs_engine PRIVATE resynd_warnings ReSyndicated::Utils PNG::PNG CLI11::CLI11 utf8cpp)
+if(WIN32)
+    target_link_libraries(rs_engine PRIVATE comctl32 dwmapi ole32 shell32 uxtheme msimg32)
+endif()
 target_link_libraries(rs_engine INTERFACE CLI11::CLI11 utf8cpp)
 
 target_link_libraries(rs_engine PRIVATE Tracy::TracyClient)
@@ -125,8 +131,17 @@ if (USE_SYSTEM_SDL)
     target_include_directories(rs_engine_sdl PUBLIC src/system)
     target_include_directories(rs_engine_sdl PRIVATE include)
 
-    target_link_libraries(rs_engine_sdl PUBLIC SDL3::SDL3 SDL3_image::SDL3_image ReSyndicated::Utils dwmapi)
+    target_link_libraries(rs_engine_sdl PUBLIC SDL3::SDL3 SDL3_image::SDL3_image ReSyndicated::Utils)
+    if(WIN32)
+        target_link_libraries(rs_engine_sdl PRIVATE dwmapi)
+    endif()
     target_link_libraries(rs_engine_sdl PRIVATE resynd_warnings utf8cpp)
+    if(APPLE)
+        target_sources(rs_engine_sdl PRIVATE src/ui/file_dialog_macos.mm src/ui/game_menu_macos.mm)
+        set_source_files_properties(src/ui/file_dialog_macos.mm src/ui/game_menu_macos.mm PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+        set_target_properties(rs_engine_sdl PROPERTIES OBJCXX_STANDARD 20 OBJCXX_STANDARD_REQUIRED ON)
+        target_link_libraries(rs_engine_sdl PRIVATE "-framework AppKit" "-framework UniformTypeIdentifiers")
+    endif()
 
     target_link_libraries(rs_engine PRIVATE ReSyndicated::Engine::Sdl)
 endif()

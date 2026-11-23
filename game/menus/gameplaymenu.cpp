@@ -49,8 +49,6 @@
 #include "core/gamecontroller.h"
 #include "core/gamesession.h"
 
-#include <windows.h>
-
 // The number of pixel of a scroll
 const int kScrollStep = 16;
 

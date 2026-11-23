@@ -59,9 +59,13 @@ static HWND getHwndFromWindow(SDL_Window *pWindow) {
 #include "rs-utils/version.h"
 #include "rs-engine/ui/settings_dialog.h"
 #include "rs-engine/appcontext.h"
+#ifdef __APPLE__
+#include "../../ui/game_menu_macos.h"
+#endif
 
 namespace rs_eng {
 
+#ifdef _WIN32
 namespace {
 
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
@@ -865,6 +869,7 @@ static bool showCustomZoomDialog(HWND hParent, double &ioZoom) {
 }
 
 } // namespace
+#endif
 
 double g_mapZoom = 1.0;
 
@@ -882,13 +887,18 @@ SystemSDL::SystemSDL() {
     pCursorTexture_ = nullptr;
     pWindow_ = nullptr;
     pRenderer_ = nullptr;
+#ifdef _WIN32
     hWindowMenu_ = nullptr;
     hMapZoomMenu_ = nullptr;
     hViewMenu_ = nullptr;
     hDebugMenu_ = nullptr;
+#endif
 }
 
 SystemSDL::~SystemSDL() {
+#ifdef __APPLE__
+    removeMacGameMenus(macMenuController_);
+#endif
     if (pCursorTexture_) {
         SDL_DestroyTexture(pCursorTexture_);
         pCursorTexture_ = nullptr;
@@ -926,6 +936,7 @@ void SystemSDL::initialize(bool fullscreen) {
         throw InitializationFailedException(std::format("Critical error, SDL could not be initialized! SDL Error :  {}", SDL_GetError()));
     }
 
+#ifdef _WIN32
     HWND hwnd = getHwndFromWindow(pWindow_);
     if (hwnd) {
         
@@ -1008,6 +1019,9 @@ void SystemSDL::initialize(bool fullscreen) {
         
         SDL_SetWindowsMessageHook(win32MessageHook, this);
     }
+#elif defined(__APPLE__)
+    macMenuController_ = installMacGameMenus(this, pWindow_);
+#endif
 
     pRenderer_ = SDL_CreateRenderer(pWindow_, NULL);
     if (pRenderer_ == nullptr) {
@@ -1047,8 +1061,10 @@ void SystemSDL::initialize(bool fullscreen) {
 }
 
 SDL_Window * SystemSDL::createWindow(bool fullscreen) {
+#ifdef _WIN32
     SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON, "1");
     SDL_SetHint(SDL_HINT_WINDOWS_INTRESOURCE_ICON_SMALL, "1");
+#endif
 
     SDL_Window *sdlWindow = nullptr;
     if (fullscreen) {
@@ -1088,6 +1104,7 @@ void SystemSDL::showError(const char *errorMsg) {
     RSERR(Log::k_FLG_IO, "SystemSDL", "showError", (errorMsg));
 }
 
+#ifdef _WIN32
 //! Opens a native Windows file open dialog.
 bool SystemSDL::browseFile(const char *title, const char *filterDesc, const char *filterPattern, std::filesystem::path &outPath) {
     HWND hParent = getHwndFromWindow(pWindow_);
@@ -1139,6 +1156,7 @@ bool SystemSDL::browseFile(const char *title, const char *filterDesc, const char
     }
     return false;
 }
+#endif
 
 /*!
  * Clear the screen with the black color.
@@ -1232,6 +1250,7 @@ bool SystemSDL::isScaleAllowed(int scale) const {
     return (w <= usableBounds.w && h <= usableBounds.h);
 }
 
+#ifdef _WIN32
 void SystemSDL::updateWindowMenuScales() {
     if (hWindowMenu_) {
         for (int s = 1; s <= 4; ++s) {
@@ -1245,6 +1264,7 @@ void SystemSDL::updateWindowMenuScales() {
         }
     }
 }
+#endif
 
 void SystemSDL::setWindowScale(int scale) {
     if (scale < 1 || scale > 4 || !pWindow_) return;
@@ -1261,11 +1281,13 @@ void SystemSDL::setWindowScale(int scale) {
     SDL_SetWindowSize(pWindow_, w, h);
     SDL_SetWindowPosition(pWindow_, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
+#ifdef _WIN32
     if (hWindowMenu_) {
         int selectedId = 2000 + scale;
         CheckMenuRadioItem((HMENU)hWindowMenu_, 2001, 2006, selectedId, MF_BYCOMMAND);
         updateWindowMenuScales();
     }
+#endif
 }
 
 void SystemSDL::setWindowDimensions(int width, int height) {
@@ -1286,6 +1308,7 @@ void SystemSDL::setWindowDimensions(int width, int height) {
     SDL_SetWindowSize(pWindow_, width, height);
     SDL_SetWindowPosition(pWindow_, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 
+#ifdef _WIN32
     if (hWindowMenu_) {
         int selectedId = 2006;
         if (width == rs_eng::kScreenWidth && height == rs_eng::kScreenHeight) selectedId = 2001;
@@ -1296,6 +1319,7 @@ void SystemSDL::setWindowDimensions(int width, int height) {
         CheckMenuRadioItem((HMENU)hWindowMenu_, 2001, 2006, selectedId, MF_BYCOMMAND);
         updateWindowMenuScales();
     }
+#endif
 }
 
 void SystemSDL::setMapZoom(double zoomFactor) {
@@ -1305,6 +1329,7 @@ void SystemSDL::setMapZoom(double zoomFactor) {
 
     g_mapZoom = zoomFactor;
 
+#ifdef _WIN32
     if (hMapZoomMenu_) {
         int wmId = 4004;
         if (std::abs(zoomFactor - 0.5) < 0.01) wmId = 4005;
@@ -1314,6 +1339,7 @@ void SystemSDL::setMapZoom(double zoomFactor) {
 
         CheckMenuRadioItem((HMENU)hMapZoomMenu_, 4001, 4005, wmId, MF_BYCOMMAND);
     }
+#endif
 }
 
 /*!
@@ -1376,21 +1402,26 @@ void SystemSDL::fillKeyEvent(const SDL_KeyboardEvent &keyEvt, RS_Event &evtOut) 
  * when a regular key is pressed. So that the application knows
  * if multiple modifier keys are pressed at the same time (ie Ctrl/Shift)
  */
+#ifdef _WIN32
 bool SDLCALL SystemSDL::win32MessageHook(void *userdata, MSG *msg) {
     if (msg->message == WM_COMMAND) {
         SystemSDL *sys = static_cast<SystemSDL *>(userdata);
         if (sys) {
-            sys->handleMenuCommand(LOWORD(msg->wParam), msg->hwnd);
+            sys->handleMenuCommand(LOWORD(msg->wParam));
             return false;
         }
     }
     return true;
 }
 
-void SystemSDL::handleMenuCommand(int wmId, HWND hParent) {
-    if (!hParent) {
-        hParent = getHwndFromWindow(pWindow_);
-    }
+#endif
+
+void SystemSDL::handleMenuCommand(int wmId) {
+#ifdef _WIN32
+    HWND hParent = getHwndFromWindow(pWindow_);
+#else
+    SDL_Window *hParent = pWindow_;
+#endif
 
     if (wmId == 1001) {
         RS_Event evt;
@@ -1399,16 +1430,20 @@ void SystemSDL::handleMenuCommand(int wmId, HWND hParent) {
     } else if (wmId == 1002) {
         std::string curDir = rs_utl::File::getOriginalDataFolder().string();
         std::string newDir;
-        if (rs_eng::showSettingsDialog(hParent, curDir, newDir, L"ReSyndicated")) {
-            if (!newDir.empty() && rs_eng::pathsAreDifferent(curDir, newDir)) {
-                rs_utl::File::setOriginalDataFolder(newDir);
-                std::string sig = rs_utl::File::computeDataSignature(newDir);
-                rs_eng::saveOriginalDataDirToResyndConf(newDir, sig);
-                g_Ctx.setDataSignature(sig);
-                RS_Event evt;
-                evt.type = EVT_RELOAD_ASSETS;
-                pendingEvents_.push(evt);
-            }
+#ifdef _WIN32
+        bool changed = showSettingsDialog(hParent, curDir, newDir, L"ReSyndicated") &&
+                       pathsAreDifferent(curDir, newDir);
+#else
+        bool changed = chooseMacDataFolder(curDir, newDir);
+#endif
+        if (changed) {
+            rs_utl::File::setOriginalDataFolder(newDir);
+            std::string sig = rs_utl::File::computeDataSignature(newDir);
+            saveOriginalDataDirToResyndConf(newDir, sig);
+            g_Ctx.setDataSignature(sig);
+            RS_Event evt;
+            evt.type = EVT_RELOAD_ASSETS;
+            pendingEvents_.push(evt);
         }
     } else if (wmId >= 2001 && wmId <= 2004) {
         int targetScale = wmId - 2000;
@@ -1461,14 +1496,11 @@ void SystemSDL::handleMenuCommand(int wmId, HWND hParent) {
             pendingEvents_.push(evt);
         }
     } else if (wmId == 5001) {
-        showCoordinates_ = !showCoordinates_;
-        CheckMenuItem((HMENU)hDebugMenu_, 5001, MF_BYCOMMAND | (showCoordinates_ ? MF_CHECKED : MF_UNCHECKED));
+        setShowCoordinates(!showCoordinates_);
     } else if (wmId == 5002) {
-        showAgentPaths_ = !showAgentPaths_;
-        CheckMenuItem((HMENU)hDebugMenu_, 5002, MF_BYCOMMAND | (showAgentPaths_ ? MF_CHECKED : MF_UNCHECKED));
+        setShowAgentPaths(!showAgentPaths_);
     } else if (wmId == 5003) {
-        showStats_ = !showStats_;
-        CheckMenuItem((HMENU)hDebugMenu_, 5003, MF_BYCOMMAND | (showStats_ ? MF_CHECKED : MF_UNCHECKED));
+        setShowStats(!showStats_);
     } else if (wmId == 6001) {
         showGameAboutDialog(hParent);
     }
@@ -1597,6 +1629,7 @@ bool SystemSDL::pumpEvents(RS_Event &evtOut) {
         case SDL_EVENT_WINDOW_MOUSE_LEAVE:
             mouse_in_window_ = false;
             break;
+#ifdef _WIN32
         case SDL_EVENT_WINDOW_MOVED:
             updateWindowMenuScales();
             break;
@@ -1615,6 +1648,7 @@ bool SystemSDL::pumpEvents(RS_Event &evtOut) {
                 updateWindowMenuScales();
             }
             break;
+#endif
         default:
             break;
         }
@@ -1633,30 +1667,38 @@ void SystemSDL::toggleFullscreen() {
     bool isFullscreen = (flags & SDL_WINDOW_FULLSCREEN) != 0;
     bool newFullscreen = !isFullscreen;
     SDL_SetWindowFullscreen(pWindow_, newFullscreen);
+#ifdef _WIN32
     if (hViewMenu_) {
         CheckMenuItem((HMENU)hViewMenu_, 2005, MF_BYCOMMAND | (newFullscreen ? MF_CHECKED : MF_UNCHECKED));
     }
+#endif
 }
 
 void SystemSDL::setShowCoordinates(bool show) {
     showCoordinates_ = show;
+#ifdef _WIN32
     if (hDebugMenu_) {
         CheckMenuItem((HMENU)hDebugMenu_, 5001, MF_BYCOMMAND | (showCoordinates_ ? MF_CHECKED : MF_UNCHECKED));
     }
+#endif
 }
 
 void SystemSDL::setShowAgentPaths(bool show) {
     showAgentPaths_ = show;
+#ifdef _WIN32
     if (hDebugMenu_) {
         CheckMenuItem((HMENU)hDebugMenu_, 5002, MF_BYCOMMAND | (showAgentPaths_ ? MF_CHECKED : MF_UNCHECKED));
     }
+#endif
 }
 
 void SystemSDL::setShowStats(bool show) {
     showStats_ = show;
+#ifdef _WIN32
     if (hDebugMenu_) {
         CheckMenuItem((HMENU)hDebugMenu_, 5003, MF_BYCOMMAND | (showStats_ ? MF_CHECKED : MF_UNCHECKED));
     }
+#endif
 }
 
 void SystemSDL::delay(uint32_t msec) {

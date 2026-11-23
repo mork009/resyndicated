@@ -206,7 +206,7 @@ public:
     static const int kCornerSlowdownDistance = 256;  ///< Distance before a turn to begin decelerating (units)
     static const int kCarYieldDistance       = 768;  ///< Lookahead distance for progressive braking on blockers (units)
     static const int kCornerTurnRadius       = 256;  ///< Sub-tile radius for cornering curve (higher = wider, more pronounced curve)
-    static const int kCornerArcWaypoints     = 6;    ///< Number of waypoints along the curve (higher = smoother resolution)
+    static constexpr int kCornerArcWaypoints = 6;    ///< Number of waypoints along the curve (higher = smoother resolution)
 
     // Pathfinding limits
     static const int   kMaxWalkableSearchRadius = 16;       ///< Max tile search radius in findPathToNearestWalkableTile()

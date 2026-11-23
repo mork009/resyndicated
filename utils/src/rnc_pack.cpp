@@ -24,6 +24,7 @@
 #include "rs-utils/io/dernc.h"
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 #include <cstdint>
 #include <cstdlib>
@@ -45,17 +46,6 @@ namespace internal {
 
 
 
-
-#ifndef _countof
-#ifndef __cplusplus
-#define _countof(_Array) (sizeof(_Array) / sizeof(_Array[0]))
-#else
-extern "C++" {
-    template <typename _CountofType, size_t _SizeOfArray> char(*__countof_helper(UNALIGNED _CountofType(&_Array)[_SizeOfArray]))[_SizeOfArray];
-#define _countof(_Array) sizeof(*__countof_helper(_Array))
-}
-#endif
-#endif
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
@@ -992,20 +982,20 @@ void compress_data_1(vars_t *v)
 
     while (v->v7 < v->unpacked_size)
     {
-        clear_table(v->len_table, _countof(v->len_table));
-        clear_table(v->pos_table, _countof(v->pos_table));
-        clear_table(v->raw_table, _countof(v->raw_table));
+        clear_table(v->len_table, std::size(v->len_table));
+        clear_table(v->pos_table, std::size(v->pos_table));
+        clear_table(v->raw_table, std::size(v->raw_table));
 
         proc_6(v);
         v->input_offset = src_offset;
 
-        proc_16(v, v->raw_table, _countof(v->raw_table));
-        proc_16(v, v->len_table, _countof(v->len_table));
-        proc_16(v, v->pos_table, _countof(v->pos_table));
+        proc_16(v, v->raw_table, std::size(v->raw_table));
+        proc_16(v, v->len_table, std::size(v->len_table));
+        proc_16(v, v->pos_table, std::size(v->pos_table));
 
-        proc_18(v, v->raw_table, _countof(v->raw_table));
-        proc_18(v, v->len_table, _countof(v->len_table));
-        proc_18(v, v->pos_table, _countof(v->pos_table));
+        proc_18(v, v->raw_table, std::size(v->raw_table));
+        proc_18(v, v->len_table, std::size(v->len_table));
+        proc_18(v, v->pos_table, std::size(v->pos_table));
 
         write_bits_m1(v, v->v17, 16);
 

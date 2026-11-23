@@ -27,8 +27,12 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <chrono>
+
+#ifdef _WIN32
 #include <windows.h>
 #include <io.h>
+#endif
 
 #include "rs-utils/common.h"
 #include "app.h"
@@ -108,6 +112,7 @@ void operator delete(void *p) {
 }
 #endif
 
+#ifdef _WIN32
 static bool g_attachedConsole = false;
 
 static void sendReturnToParentConsole() {
@@ -133,7 +138,10 @@ static void sendReturnToParentConsole() {
     }
 }
 
+#endif
+
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
     bool helpRequested = false;
     for (int i = 1; i < argc; ++i) {
         std::string arg(argv[i]);
@@ -167,13 +175,15 @@ int main(int argc, char *argv[]) {
         std::ios::sync_with_stdio();
     }
 
+#endif
+
     printf("ReSyndicated - %i.%i\n", RS_VERSION_MAJOR, RS_VERSION_MINOR);
 
 #ifdef CHEAP_LEAK_DETECTION
     initLeakDetection();
 #endif
 
-    srand(GetTickCount());
+    srand(static_cast<unsigned>(std::chrono::steady_clock::now().time_since_epoch().count()));
     
     App app;
 
@@ -181,7 +191,9 @@ int main(int argc, char *argv[]) {
 
     app.destroy();
 
+#ifdef _WIN32
     sendReturnToParentConsole();
+#endif
 
     return res;
 }

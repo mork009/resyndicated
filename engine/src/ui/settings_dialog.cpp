@@ -25,12 +25,15 @@
 #include "rs-utils/io/resyndconfig.h"
 #include "rs-utils/log/log.h"
 
+#ifdef _WIN32
 #include <shobjidl.h>
 #include <shlobj.h>
 #include <commctrl.h>
 #include <dwmapi.h>
 #include <uxtheme.h>
+#endif
 #include <format>
+#include <cctype>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -43,6 +46,7 @@ namespace fs = std::filesystem;
 
 namespace rs_eng {
 
+#ifdef _WIN32
 namespace {
 
 constexpr COLORREF kColorDlgBg           = RGB(28, 30, 34);    // #1C1E22
@@ -115,6 +119,7 @@ int countMissionsInDir(const fs::path &dir) {
 }
 
 } // anonymous namespace
+#endif
 
 DataValidationResult verifyDataDirectories(const fs::path &originalDir) {
     DataValidationResult res;
@@ -341,7 +346,8 @@ DataValidationResult verifyDataDirectories(const fs::path &originalDir) {
                     std::string expectedMap = std::format("map{:02}.dat", mapNum);
                     bool mapFound = false;
                     for (const auto &mName : mapFiles) {
-                        if (_stricmp(mName.c_str(), expectedMap.c_str()) == 0) {
+                        if (std::equal(mName.begin(), mName.end(), expectedMap.begin(), expectedMap.end(),
+                                [](unsigned char a, unsigned char b) { return std::tolower(a) == b; })) {
                             mapFound = true;
                             break;
                         }
@@ -420,6 +426,7 @@ DataValidationResult verifyDataDirectories(const fs::path &originalDir) {
     return res;
 }
 
+#ifdef _WIN32
 bool browseForFolder(HWND hOwner, const std::wstring &title, std::wstring &outFolder) {
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     bool coInitialized = SUCCEEDED(hr) || hr == S_FALSE;
@@ -1234,6 +1241,11 @@ bool showSettingsDialog(HWND hParent, const std::string &currentPath, std::strin
     return false;
 }
 
+bool showGameDataSetup(const std::string &initialPath, std::string &selectedPath) {
+    return showDataDirSetupDialog(nullptr, initialPath, selectedPath);
+}
+#endif
+
 bool saveOriginalDataDirToResyndConf(const std::string &dataDir, const std::string &dataSignature) {
     if (dataDir.empty()) return false;
 
@@ -1242,7 +1254,6 @@ bool saveOriginalDataDirToResyndConf(const std::string &dataDir, const std::stri
         sig = rs_utl::File::computeDataSignature(dataDir);
     }
 
-    rs_utl::File::getOrCreateUserConfFolder("");
     fs::path confPath;
     rs_utl::File::getResyndConfFullPath(confPath);
 
@@ -1255,6 +1266,7 @@ bool saveOriginalDataDirToResyndConf(const std::string &dataDir, const std::stri
     return cfg.save(confPath);
 }
 
+#ifdef _WIN32
 bool pathsAreDifferent(const std::string &p1, const std::string &p2) {
     if (p1.empty() && p2.empty()) return false;
     if (p1.empty() || p2.empty()) return true;
@@ -1270,5 +1282,7 @@ bool pathsAreDifferent(const std::string &p1, const std::string &p2) {
 bool pathsAreDifferent(const std::wstring &p1, const std::wstring &p2) {
     return pathsAreDifferentInternal(p1, p2);
 }
+
+#endif
 
 } // namespace rs_eng
