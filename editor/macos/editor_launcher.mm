@@ -47,15 +47,8 @@ int main(int argc, char **argv) {
         }
 
         std::vector<std::string> args{wine.string(), editor.string()};
-        bool explicitData = false;
         for (int i = 1; i < argc; ++i) {
-            std::string arg = argv[i];
-            args.push_back(arg);
-            if ((arg == "-d" || arg == "--data") && i + 1 < argc) {
-                std::string path = argv[++i];
-                args.push_back((path.size() >= 2 && path[1] == ':') ? path : winePath(path));
-                explicitData = true;
-            }
+            args.push_back(argv[i]);
         }
 
         // Reuse the native game's choice on the first run. Later launches respect
@@ -63,13 +56,16 @@ int main(int argc, char **argv) {
         NSString *user = NSUserName();
         fs::path editorConf = fs::path(std::getenv("WINEPREFIX")) / "drive_c/users" /
                               user.fileSystemRepresentation / ".resynd/resynd.conf";
-        if (!explicitData && !fs::exists(editorConf)) {
+        if (!fs::exists(editorConf)) {
             rs_utl::ResyndConfig cfg;
             if (cfg.load(fs::path(NSHomeDirectory().fileSystemRepresentation) / ".resynd/resynd.conf")) {
                 auto path = cfg.getString("Paths", "data_dir", "");
                 if (!path.empty() && fs::is_directory(path)) {
-                    args.push_back("--data");
-                    args.push_back(winePath(path));
+                    rs_utl::ResyndConfig editorCfg;
+                    editorCfg.setString("Paths", "data_dir", winePath(path));
+                    std::error_code ec;
+                    fs::create_directories(editorConf.parent_path(), ec);
+                    editorCfg.save(editorConf);
                 }
             }
         }

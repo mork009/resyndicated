@@ -1,3 +1,9 @@
+[1.0.2] - 2026-11-24
+- Added `EDITOR.md`, a complete user and mission-design guide for the Mission Editor covering tile construction, layers, routes, enemy AI faction tactics, objectives, validation, and sandboxed playtesting.
+- Expanded `README.md` with macOS Quick Start and Gatekeeper instructions, cross-platform configuration/save paths, and updated Wine editor setup options.
+- Removed the redundant `-d` / `--data` CLI option from the Mission Editor (keeping `--settings` and `File -> Settings...`), and updated the macOS Wine editor launcher to seed its initial configuration directly on first launch.
+- Unified `-h` / `--help` terminal output across both the game and the Mission Editor cleanly from Windows and macOS/Wine shells.
+
 [1.0.1] - 2026-11-23
 - Added native macOS support (`ReSyndicated.app`) with native Cocoa menus (`File`, `View`, `Debug`, and `Help`), native macOS folder selection and file open dialogs, custom window size/zoom dialogs, and `~/.resynd/resynd.conf` home-directory configuration.
 - Added an optional macOS Mission Editor build target (`ReSyndicated Editor.app`) wrapping the Windows editor and Wine runtime with automatic first-run `DATA` path sharing from the native macOS game configuration.

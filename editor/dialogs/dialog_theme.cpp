@@ -1606,25 +1606,21 @@ static LRESULT CALLBACK AboutDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM 
     return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
 
-void showAboutDialog(HWND hParent) {
-    static bool s_registered = false;
-    const wchar_t *kClassName = L"ReSyndicatedAboutDlgClass";
+static void showThemedInfoDialog(HWND hParent, const wchar_t *kClassName, WNDPROC proc,
+                                 const wchar_t *title, int dlgW, int dlgH, bool &registered) {
     HINSTANCE hInstance = GetModuleHandleW(nullptr);
 
-    if (!s_registered) {
+    if (!registered) {
         WNDCLASSEXW wc = {};
         wc.cbSize = sizeof(WNDCLASSEXW);
-        wc.lpfnWndProc = AboutDlgProc;
+        wc.lpfnWndProc = proc;
         wc.hInstance = hInstance;
         wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
         wc.hbrBackground = CreateSolidBrush(kColorDlgBg);
         wc.lpszClassName = kClassName;
         RegisterClassExW(&wc);
-        s_registered = true;
+        registered = true;
     }
-
-    int dlgW = 680;
-    int dlgH = 455;
 
     RECT rcParent = {};
     if (hParent && IsWindow(hParent)) {
@@ -1642,7 +1638,7 @@ void showAboutDialog(HWND hParent) {
     HWND hDlg = CreateWindowExW(
         WS_EX_DLGMODALFRAME | WS_EX_TOPMOST,
         kClassName,
-        L"About",
+        title,
         WS_POPUP | WS_CAPTION | WS_SYSMENU,
         dlgX, dlgY, dlgW, dlgH,
         hParent, nullptr, hInstance, nullptr
@@ -1673,6 +1669,11 @@ void showAboutDialog(HWND hParent) {
         SetForegroundWindow(hParent);
         SetFocus(hParent);
     }
+}
+
+void showAboutDialog(HWND hParent) {
+    static bool s_registered = false;
+    showThemedInfoDialog(hParent, L"ReSyndicatedAboutDlgClass", AboutDlgProc, L"About", 680, 455, s_registered);
 }
 
 } // namespace rs_win_editor

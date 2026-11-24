@@ -29,15 +29,11 @@
 
 #include <chrono>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <io.h>
-#endif
-
 #include "rs-utils/common.h"
 #include "app.h"
 #include "rs-utils/io/file.h"
 #include "rs-utils/log/log.h"
+#include "rs-utils/misc/win_console.h"
 #include "version.h"
 
 #include <SDL3/SDL.h>
@@ -112,72 +108,17 @@ void operator delete(void *p) {
 }
 #endif
 
-#ifdef _WIN32
-static bool g_attachedConsole = false;
-
-static void sendReturnToParentConsole() {
-    if (g_attachedConsole) {
-        HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-        if (hIn && hIn != INVALID_HANDLE_VALUE) {
-            INPUT_RECORD ir[2] = {};
-            ir[0].EventType = KEY_EVENT;
-            ir[0].Event.KeyEvent.bKeyDown = TRUE;
-            ir[0].Event.KeyEvent.wRepeatCount = 1;
-            ir[0].Event.KeyEvent.wVirtualKeyCode = VK_RETURN;
-            ir[0].Event.KeyEvent.wVirtualScanCode = (WORD)MapVirtualKey(VK_RETURN, MAPVK_VK_TO_VSC);
-            ir[0].Event.KeyEvent.uChar.UnicodeChar = L'\r';
-
-            ir[1] = ir[0];
-            ir[1].Event.KeyEvent.bKeyDown = FALSE;
-
-            DWORD written = 0;
-            WriteConsoleInputW(hIn, ir, 2, &written);
-        }
-        FreeConsole();
-        g_attachedConsole = false;
-    }
-}
-
-#endif
-
 int main(int argc, char *argv[]) {
-#ifdef _WIN32
-    bool helpRequested = false;
+    rs_utl::WinParentConsole parentConsole;
     for (int i = 1; i < argc; ++i) {
         std::string arg(argv[i]);
         if (arg == "-h" || arg == "--help" || arg == "-?") {
-            helpRequested = true;
+            parentConsole.attach();
             break;
         }
     }
 
-    if (helpRequested) {
-        if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-            g_attachedConsole = true;
-            FILE *fp;
-            freopen_s(&fp, "CONOUT$", "w", stdout);
-            freopen_s(&fp, "CONOUT$", "w", stderr);
-        } else {
-            HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-            if (hOut != NULL && hOut != INVALID_HANDLE_VALUE) {
-                int fd = _open_osfhandle((intptr_t)hOut, 0);
-                if (fd != -1) {
-                    FILE *fp = _fdopen(fd, "w");
-                    if (fp) {
-                        *stdout = *fp;
-                        setvbuf(stdout, NULL, _IONBF, 0);
-                    }
-                }
-            }
-        }
-        std::cout.clear();
-        std::cerr.clear();
-        std::ios::sync_with_stdio();
-    }
-
-#endif
-
-    printf("ReSyndicated - %i.%i\n", RS_VERSION_MAJOR, RS_VERSION_MINOR);
+    printf("ReSyndicated - %s\n", RS_VERSION_STRING);
 
 #ifdef CHEAP_LEAK_DETECTION
     initLeakDetection();
@@ -190,10 +131,6 @@ int main(int argc, char *argv[]) {
     int res = app.run(argc, argv);
 
     app.destroy();
-
-#ifdef _WIN32
-    sendReturnToParentConsole();
-#endif
 
     return res;
 }

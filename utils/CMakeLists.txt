@@ -32,6 +32,7 @@ set(HEADER_LIST
     "${ReSyndicated_SOURCE_DIR}/utils/include/rs-utils/misc/singleton.h"
     "${ReSyndicated_SOURCE_DIR}/utils/include/rs-utils/misc/seqmodel.h"
     "${ReSyndicated_SOURCE_DIR}/utils/include/rs-utils/misc/timer.h"
+    "${ReSyndicated_SOURCE_DIR}/utils/include/rs-utils/misc/win_console.h"
     "${ReSyndicated_SOURCE_DIR}/utils/include/rs-utils/version.h"
     )
 
@@ -44,6 +45,7 @@ set(SOURCE_LIST
     "${ReSyndicated_SOURCE_DIR}/utils/src/dernc.cpp"
     "${ReSyndicated_SOURCE_DIR}/utils/src/rnc_pack.cpp"
     "${ReSyndicated_SOURCE_DIR}/utils/src/seqmodel.cpp"
+    "${ReSyndicated_SOURCE_DIR}/utils/src/win_console.cpp"
     )
 
 # Definition of the rs_utils library - will be static or dynamic based on user setting

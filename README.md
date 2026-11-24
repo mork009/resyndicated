@@ -70,6 +70,7 @@ See [`LICENSE.md`](LICENSE.md) for full license text and terms.
 ## Documentation Index
 
 * **Changelog & Release Notes**: [`changelog.txt`](changelog.txt).
+* **Editor Guide**: [`EDITOR.md`](EDITOR.md).
 * **Character Stats & Behaviors**: [`docs/CHARACTERS.md`](docs/CHARACTERS.md).
 * **Weapons Specification**: [`docs/WEAPONS.md`](docs/WEAPONS.md).
 * **License**: [`LICENSE.md`](LICENSE.md).
@@ -189,11 +190,7 @@ open "build/macos/editor/ReSyndicated Editor.app"
 
 This target packages the Windows editor (from the latest release), its matching game for playtesting, and Wine 11.21 in one app. The first build downloads about 233 MB and checks both archives against pinned SHA-256 hashes. [Editor release](https://github.com/mork009/resyndicated/releases/tag/v1.0.0) · [Wine runtime](https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.21)
 
-On first launch, the editor uses the native game's configured `DATA` folder if available. The editor can overwrite mission files, so choose a working copy for editing. You can pass a Mac folder path directly when launching the editor.
-
-```sh
-open "build/macos/editor/ReSyndicated Editor.app" --args --data "/path/to/working copy/DATA"
-```
+On first launch, the editor uses the native game's configured `DATA` folder if available. The editor can overwrite mission files, so choose a working copy for editing (you can change the path later via `File -> Settings...` or `--settings`).
 
 The editor keeps its Windows settings in a dedicated Wine prefix under `~/Library/Application Support/ReSyndicated/EditorWine`. In its file picker, drive `Z:` corresponds to the Mac filesystem. The editor accepts the Windows shortcuts, including Ctrl+S to save and F5 to playtest.
 
@@ -262,7 +259,6 @@ Saved games are stored in `%USERPROFILE%\.resynd\save\` on Windows or `~/.resynd
 |:------ |:-------------- |:--------:|:------------------------------------------------------ |
 | `-h`   | `--help`, `/?` | None     | Display editor usage and command line options.         |
 | `-m`   | `--mission`    | `<id>`   | Open specified mission ID directly (1–50).             |
-| `-d`   | `--data`       | `<path>` | Specify path to original Syndicate `DATA` directory.   |
 | —      | `--settings`   | None     | Open data setup dialog directly before loading editor. |
 
 ---

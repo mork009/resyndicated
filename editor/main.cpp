@@ -28,6 +28,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 
 #include "main_window.h"
 #include "editor_config.h"
@@ -37,6 +38,8 @@
 #include "resource.h"
 #include "rs-utils/io/file.h"
 #include "rs-utils/io/configfile.h"
+#include "rs-utils/misc/win_console.h"
+#include "rs-utils/version.h"
 
 #include <csignal>
 #include <DbgHelp.h>
@@ -91,38 +94,13 @@ static LONG WINAPI unhandledExceptionFilter(EXCEPTION_POINTERS *pExceptionInfo) 
 namespace fs = std::filesystem;
 
 static bool configureAndVerifyDataDirectories(HINSTANCE /*hInstance*/,
-                                             const std::wstring &customData,
                                              rs_win_editor::EditorPathsConfig &outConfiguredPaths) {
     using namespace rs_win_editor;
 
     // ReSyndicated data files are bundled with the application
     rs_utl::File::setResyndDataFolder("");
 
-    // 1. Explicit CLI argument: -d <path> or --data <path>
-    if (!customData.empty()) {
-        std::string sData = fs::path(customData).string();
-        auto val = rs_eng::verifyDataDirectories(sData);
-        if (val.isValid) {
-            outConfiguredPaths.dataDir = sData;
-            outConfiguredPaths.dataSignature = rs_utl::File::computeDataSignature(sData);
-            EditorConfig::savePathsConfig(outConfiguredPaths);
-            rs_utl::File::setOriginalDataFolder(outConfiguredPaths.dataDir);
-            return true;
-        } else {
-            EditorPathsConfig inPaths{ sData };
-            EditorPathsConfig selected;
-            if (showDataDirSetupDialog(nullptr, inPaths, selected)) {
-                outConfiguredPaths = selected;
-                outConfiguredPaths.dataSignature = rs_utl::File::computeDataSignature(outConfiguredPaths.dataDir);
-                EditorConfig::savePathsConfig(outConfiguredPaths);
-                rs_utl::File::setOriginalDataFolder(outConfiguredPaths.dataDir);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    // 2. Check saved editor configuration (~/.resynd/resynd.conf)
+    // 1. Check saved editor configuration (~/.resynd/resynd.conf)
     EditorPathsConfig pathsCfg;
     bool hasSaved = EditorConfig::loadPathsConfig(pathsCfg) && !pathsCfg.dataDir.empty();
     if (hasSaved) {
@@ -198,6 +176,44 @@ struct StreamRedirector {
 } // namespace
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR pCmdLine, int nCmdShow) {
+    // Parse command line arguments before log redirection so --help prints cleanly to terminal
+    int argc = 0;
+    LPWSTR *argv = CommandLineToArgvW(pCmdLine, &argc);
+
+    int startMissionId = -1;
+    bool showSettingsDirectly = false;
+    bool helpRequested = false;
+
+    if (argv) {
+        for (int i = 0; i < argc; ++i) {
+            std::wstring arg = argv[i];
+            if ((arg == L"-m" || arg == L"--mission") && i + 1 < argc) {
+                startMissionId = std::stoi(argv[++i]);
+            } else if (arg == L"--settings") {
+                showSettingsDirectly = true;
+            } else if (arg == L"-h" || arg == L"--help" || arg == L"-?" || arg == L"/?") {
+                helpRequested = true;
+                break;
+            }
+        }
+        LocalFree(argv);
+    }
+
+    if (helpRequested) {
+        rs_utl::WinParentConsole parentConsole;
+        parentConsole.attach();
+        std::printf(
+            "ReSyndicated Mission Editor - %d.%d.%d\n"
+            "Usage: resynd_editor.exe [OPTIONS]\n\n"
+            "Options:\n"
+            "  -h, --help, -?, /?       Display command line options and exit.\n"
+            "  -m, --mission <id>       Open specified mission ID directly (1-99).\n"
+            "  --settings               Open data setup dialog directly before exiting.\n",
+            RS_VERSION_MAJOR, RS_VERSION_MINOR, RS_VERSION_PATCH);
+        std::fflush(stdout);
+        return 0;
+    }
+
     signal(SIGABRT, abortHandler);
     SetUnhandledExceptionFilter(unhandledExceptionFilter);
 
@@ -231,42 +247,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, PWSTR pCmd
     icex.dwICC = ICC_WIN95_CLASSES | ICC_BAR_CLASSES | ICC_TAB_CLASSES | ICC_STANDARD_CLASSES | ICC_LISTVIEW_CLASSES;
     InitCommonControlsEx(&icex);
 
-    // Parse command line arguments
-    int argc = 0;
-    LPWSTR *argv = CommandLineToArgvW(pCmdLine, &argc);
-
-    int startMissionId = -1;
-    std::wstring customData;
-    bool showSettingsDirectly = false;
-
-    if (argv) {
-        for (int i = 0; i < argc; ++i) {
-            std::wstring arg = argv[i];
-            if ((arg == L"-m" || arg == L"--mission") && i + 1 < argc) {
-                startMissionId = std::stoi(argv[++i]);
-            } else if ((arg == L"-d" || arg == L"--data") && i + 1 < argc) {
-                customData = argv[++i];
-            } else if (arg == L"--settings") {
-                showSettingsDirectly = true;
-            } else if (arg == L"-h" || arg == L"--help" || arg == L"/?") {
-                MessageBoxW(nullptr,
-                    L"ReSyndicated Mission Editor\n\n"
-                    L"Usage: resynd_editor.exe [options]\n\n"
-                    L"Options:\n"
-                    L"  -m, --mission <id>   Open specified mission ID directly (e.g. -m 1)\n"
-                    L"  -d, --data <path>    Specify path to original Syndicate data directory\n"
-                    L"  --settings           Open settings dialog to configure data path\n"
-                    L"  -h, --help           Display this help message",
-                    L"ReSyndicated Editor Help", MB_OK | MB_ICONINFORMATION);
-                return 0;
-            }
-        }
-        LocalFree(argv);
-    }
-
     // Setup and verify asset data directories
     rs_win_editor::EditorPathsConfig configuredPaths;
-    if (!configureAndVerifyDataDirectories(hInstance, customData, configuredPaths)) {
+    if (!configureAndVerifyDataDirectories(hInstance, configuredPaths)) {
         std::cerr << "Editor startup canceled or data directory not configured." << std::endl;
         return 0;
     }
