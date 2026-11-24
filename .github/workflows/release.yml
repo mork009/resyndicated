@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 jobs:
-  package-and-release:
-    name: Build & Package Windows x64 Release
+  build-windows:
+    name: Build & Package Windows x64
     runs-on: windows-latest
 
     steps:
@@ -46,30 +46,122 @@ jobs:
           .\build\ninja-msvc-x64-release\kernel\test\test-kernel.exe "PedAction,[ipa],[mapobject],[map],[objectivedesc],[rnc],[squad],[gametime],[weaponholder],[ped][behaviour],[ped][police],[ped][agent][ai],[ped][pathfinding],[ped][perception]"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Upload workflow build artifacts
+      - name: Upload Windows release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ReSyndicated-x64-package
+          name: package-windows-x64
           path: |
             build/ninja-msvc-x64-release/PackageOutput/*.zip
             build/ninja-msvc-x64-release/PackageOutput/*.sha256
           if-no-files-found: error
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: powershell
+  build-macos:
+    name: Build & Package macOS arm64
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install macOS dependencies
+        run: brew install cmake ninja sdl3 sdl3_image libpng cli11 utf8cpp tracy catch2 dylibbundler
+
+      - name: Configure and build (Release)
+        run: |
+          cmake -S . -B build/macos -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/macos
+
+      - name: Run asset-independent unit tests
+        run: |
+          ./build/macos/engine/test/test-engine
+          ./build/macos/kernel/test/test-kernel "PedAction,[ipa],[mapobject],[map],[objectivedesc],[rnc],[squad],[gametime],[weaponholder],[ped][behaviour],[ped][police],[ped][agent][ai],[ped][pathfinding],[ped][perception]"
+
+      - name: Package standalone macOS Release ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n ' < version.txt)"
+          STAGE_NAME="ReSyndicated-${VERSION}-macos-arm64"
+          OUT_DIR="build/macos/PackageOutput"
+          STAGE_DIR="${OUT_DIR}/${STAGE_NAME}"
+          BREW_PREFIX="$(brew --prefix)"
+
+          rm -rf "${STAGE_DIR}"
+          mkdir -p "${STAGE_DIR}/THIRD_PARTY_LICENSES" "${OUT_DIR}"
+
+          ditto "build/macos/game/ReSyndicated.app" "${STAGE_DIR}/ReSyndicated.app"
+          dylibbundler -od -b \
+            -x "${STAGE_DIR}/ReSyndicated.app/Contents/MacOS/ReSyndicated" \
+            -d "${STAGE_DIR}/ReSyndicated.app/Contents/Frameworks/" \
+            -p "@executable_path/../Frameworks/" \
+            -s "${BREW_PREFIX}/lib"
+
+          # Verify no non-system Homebrew/local dynamic library references remain
+          for bin in "${STAGE_DIR}/ReSyndicated.app/Contents/MacOS/ReSyndicated" "${STAGE_DIR}/ReSyndicated.app/Contents/Frameworks/"*.dylib; do
+            echo "=== otool -L ${bin} ==="
+            otool -L "${bin}"
+            if otool -L "${bin}" | grep -E '/opt/homebrew|/usr/local'; then
+              echo "ERROR: Unbundled Homebrew/local dylib reference in ${bin}"
+              exit 1
+            fi
+          done
+
+          # Bundle third-party copyright/license files for SDL3, SDL3_image, libpng and transitive deps
+          for pkg in sdl3 sdl3_image libpng $(brew deps --union sdl3 sdl3_image libpng); do
+            prefix="$(brew --prefix "${pkg}" 2>/dev/null || true)"
+            if [ -n "${prefix}" ] && [ -d "${prefix}" ]; then
+              mkdir -p "${STAGE_DIR}/THIRD_PARTY_LICENSES/${pkg}"
+              find -L "${prefix}" -maxdepth 3 -type f \( -iname 'LICENSE*' -o -iname 'COPYING*' -o -iname 'COPYRIGHT*' \) -exec cp -n {} "${STAGE_DIR}/THIRD_PARTY_LICENSES/${pkg}/" \;
+              rmdir "${STAGE_DIR}/THIRD_PARTY_LICENSES/${pkg}" 2>/dev/null || true
+            fi
+          done
+
+          cp LICENSE.md README.md changelog.txt "${STAGE_DIR}/"
+          codesign --force --deep --sign - "${STAGE_DIR}/ReSyndicated.app"
+
+          ditto -c -k --sequesterRsrc --keepParent "${STAGE_DIR}" "${OUT_DIR}/${STAGE_NAME}.zip"
+          (cd "${OUT_DIR}" && shasum -a 256 "${STAGE_NAME}.zip" > "${STAGE_NAME}.zip.sha256")
+          ls -lh "${OUT_DIR}"
+
+      - name: Upload macOS release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-macos-arm64
+          path: |
+            build/macos/PackageOutput/*.zip
+            build/macos/PackageOutput/*.sha256
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [ build-windows, build-macos ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "${{ github.ref_name }}"
-          $files = @(Get-ChildItem -Path "build/ninja-msvc-x64-release/PackageOutput/*" -Include *.zip, *.sha256 -File | Select-Object -ExpandProperty FullName)
-          if ($files.Count -eq 0) {
-            throw "No release package files found in build/ninja-msvc-x64-release/PackageOutput"
-          }
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag @files --clobber
-          } else {
-            gh release create $tag @files --title "ReSyndicated $tag" --generate-notes
-          }
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          shopt -s nullglob
+          FILES=(release-assets/*.zip release-assets/*.sha256)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "ERROR: No release files downloaded"
+            exit 1
+          fi
+          ls -lh "${FILES[@]}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" "${FILES[@]}" --clobber
+          else
+            gh release create "${TAG}" "${FILES[@]}" --title "ReSyndicated ${TAG}" --generate-notes
+          fi

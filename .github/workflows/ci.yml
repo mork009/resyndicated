@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  build-windows:
     name: Build & Unit Tests (Windows x64)
     runs-on: windows-latest
 
@@ -43,3 +43,26 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           .\build\ninja-msvc-x64-release\kernel\test\test-kernel.exe "PedAction,[ipa],[mapobject],[map],[objectivedesc],[rnc],[squad],[gametime],[weaponholder],[ped][behaviour],[ped][police],[ped][agent][ai],[ped][pathfinding],[ped][perception]"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  build-macos:
+    name: Build & Unit Tests (macOS arm64)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install macOS dependencies
+        run: brew install cmake ninja sdl3 sdl3_image libpng cli11 utf8cpp tracy catch2
+
+      - name: Configure and build (Release)
+        run: |
+          cmake -S . -B build/macos -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/macos
+
+      - name: Verify app bundle and run asset-independent unit tests
+        run: |
+          test -x "build/macos/game/ReSyndicated.app/Contents/MacOS/ReSyndicated"
+          test -f "build/macos/game/ReSyndicated.app/Contents/Resources/data/ref/characters.dat"
+          ./build/macos/engine/test/test-engine
+          ./build/macos/kernel/test/test-kernel "PedAction,[ipa],[mapobject],[map],[objectivedesc],[rnc],[squad],[gametime],[weaponholder],[ped][behaviour],[ped][police],[ped][agent][ai],[ped][pathfinding],[ped][perception]"

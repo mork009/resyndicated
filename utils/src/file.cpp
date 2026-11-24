@@ -61,9 +61,16 @@ namespace rs_utl {
 
     fs::path File::getExecutableDirectory() {
 #ifdef _WIN32
-        wchar_t path[32768];
-        DWORD length = GetModuleFileNameW(nullptr, path, std::size(path));
-        if (length && length < std::size(path)) return fs::path(path).parent_path();
+        std::wstring path(4096, L'\0');
+        DWORD length = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+        if (length == path.size() && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+            path.resize(32768, L'\0');
+            length = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
+        }
+        if (length && length < path.size()) {
+            path.resize(length);
+            return fs::path(path).parent_path();
+        }
 #elif defined(__APPLE__)
         uint32_t size = 0;
         _NSGetExecutablePath(nullptr, &size);

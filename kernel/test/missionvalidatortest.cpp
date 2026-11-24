@@ -59,7 +59,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
 
     SECTION("All 50 Original Missions Pass Validation Cleanly (Collective Baseline)") {
         for (int mId = 1; mId <= 50; ++mId) {
-            LevelData::LevelDataAll ld;
+            auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+            auto &ld = *ldPtr;
             if (!misMgr.load_level_data(mId, ld)) continue;
             rs_knl::Mission *m = misMgr.create_mission(ld);
             if (!m) continue;
@@ -128,7 +129,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Missing Player Squad is Flagged as Error") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -158,7 +160,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Squad Agent Placed on Unwalkable Tile is Flagged as Error") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -205,7 +208,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Squad Agent Floating Over Empty Void Space is Flagged as Error") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -240,7 +244,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Entity Placed Outside Map Boundaries is Flagged as Error") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -264,7 +269,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Civilian Floating Over Empty Void Column is Flagged as Warning") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -293,7 +299,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Vehicle Embedded Inside Solid Wall is Flagged as Warning") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -337,7 +344,8 @@ TEST_CASE("MissionValidator Collective Baseline & Boundary Tests", "[editor][val
     }
 
     SECTION("Missing Objective Target is Flagged as Error") {
-        LevelData::LevelDataAll ld;
+        auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+        auto &ld = *ldPtr;
         REQUIRE(misMgr.load_level_data(1, ld));
         rs_knl::Mission *m = misMgr.create_mission(ld);
         REQUIRE(m != nullptr);
@@ -380,7 +388,8 @@ TEST_CASE("New Blank Canvas Mission Setup with 4 Squad Spawn Points Passes Valid
     REQUIRE(tileMgr.loadTiles());
     rs_knl::MissionManager misMgr(&tileMgr);
 
-    LevelData::LevelDataAll ld;
+    auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+    auto &ld = *ldPtr;
     REQUIRE(misMgr.load_level_data(1, ld));
     rs_knl::Mission *m = misMgr.create_mission(ld);
     REQUIRE(m != nullptr);
@@ -473,7 +482,8 @@ TEST_CASE("MissionValidator - Faction Agent Capacity and Slot Allocation", "[val
     REQUIRE(tileMgr.loadTiles());
     rs_knl::MissionManager misMgr(&tileMgr);
 
-    LevelData::LevelDataAll ld;
+    auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+    auto &ld = *ldPtr;
     REQUIRE(misMgr.load_level_data(1, ld));
     rs_knl::Mission *m = misMgr.create_mission(ld);
     REQUIRE(m != nullptr);
@@ -551,7 +561,8 @@ TEST_CASE("MissionValidator - Pedestrian Total Capacity (256) and Duplicate ID D
     REQUIRE(tileMgr.loadTiles());
     rs_knl::MissionManager misMgr(&tileMgr);
 
-    LevelData::LevelDataAll ld;
+    auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+    auto &ld = *ldPtr;
     REQUIRE(misMgr.load_level_data(1, ld));
     rs_knl::Mission *m = misMgr.create_mission(ld);
     REQUIRE(m != nullptr);
@@ -660,7 +671,8 @@ TEST_CASE("MissionValidator Vehicle Dependencies and Route Step Validation", "[e
     REQUIRE(tileMgr.loadTiles());
     rs_knl::MissionManager misMgr(&tileMgr);
 
-    LevelData::LevelDataAll ld;
+    auto ldPtr = std::make_unique<LevelData::LevelDataAll>();
+    auto &ld = *ldPtr;
     REQUIRE(misMgr.load_level_data(1, ld));
     rs_knl::Mission *m = misMgr.create_mission(ld);
     REQUIRE(m != nullptr);

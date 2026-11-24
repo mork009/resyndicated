@@ -1,3 +1,10 @@
+[1.0.1] - 2026-11-23
+- Added native macOS support (`ReSyndicated.app`) with native Cocoa menus (`File`, `View`, `Debug`, and `Help`), native macOS folder selection and file open dialogs, custom window size/zoom dialogs, and `~/.resynd/resynd.conf` home-directory configuration.
+- Added an optional macOS Mission Editor build target (`ReSyndicated Editor.app`) wrapping the Windows editor and Wine runtime with automatic first-run `DATA` path sharing from the native macOS game configuration.
+- Updated CMake, platform utilities, and test suites for cross-platform macOS and Windows compatibility (Objective-C++ integration, cross-platform executable path discovery, portable clock seeding, and updated test targets).
+- Updated README.md to include instructions for running and building on macOS.
+- Added GitHub Actions CI and Release build/packaging support for macOS (`ReSyndicated-<version>-macos-arm64.zip` with bundled SDL3/SDL3_image/libpng runtime libraries and third-party license notices) alongside Windows x64.
+
 [1.0.0] - 2026-11-22
 - Bumped version to 1.0.0
 - Cleaned up packaging
