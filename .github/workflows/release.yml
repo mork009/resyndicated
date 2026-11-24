@@ -150,11 +150,11 @@ jobs:
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           TAG="${GITHUB_REF_NAME}"
-          shopt -s nullglob
-          FILES=(release-assets/*.zip release-assets/*.sha256)
+          mapfile -t FILES < <(find release-assets -type f \( -name '*.zip' -o -name '*.sha256' \) | sort)
           if [ ${#FILES[@]} -eq 0 ]; then
             echo "ERROR: No release files downloaded"
             exit 1
